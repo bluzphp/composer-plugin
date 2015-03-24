@@ -18,6 +18,6 @@
         }
     },
     "extra": {
-        "class": "\\Bashmach\\Composer\\Installers\\BluzInstaller"
+        "class": "Bashmach\\Composer\\Installers\\BluzInstaller"
     }
 }
