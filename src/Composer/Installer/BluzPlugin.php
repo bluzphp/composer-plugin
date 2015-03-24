@@ -9,8 +9,16 @@ namespace Composer\Installer;
 use Composer\Composer;
 use Composer\IO\IOInterface;
 use Composer\Plugin\PluginInterface;
-use Composer\Installer\PuppetInstaller;
+use Composer\Installer\BluzInstaller;
 
-class BluzModule {
-
+class BluzPlugin implements PluginInterface
+{
+    /**
+     * {@inheritDoc}
+     */
+    public function activate(Composer $composer, IOInterface $io)
+    {
+        $installer = new BluzInstaller($io, $composer);
+        $composer->getInstallationmanager()->addInstaller($installer);
+    }
 }
