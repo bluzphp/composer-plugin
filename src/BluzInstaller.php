@@ -14,7 +14,7 @@ class BluzInstaller extends BaseInstaller
     /**
      * {@inheritDoc}
      */
-    public function getInstallPath(PackageInterface $package)
+    public function getInstallPath(PackageInterface $package, $frameworkType = '')
     {
         $extra     = $package->getExtra();
         $rootExtra = $this->composer->getPackage()->getExtra();
