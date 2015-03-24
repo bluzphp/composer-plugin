@@ -7,7 +7,7 @@
 namespace Bashmach\Composer\Installer;
 
 use Composer\Package\PackageInterface;
-use Composer\Installer\BaseInstaller;
+use Composer\Installers\BaseInstaller;
 
 class BluzInstaller extends BaseInstaller
 {
