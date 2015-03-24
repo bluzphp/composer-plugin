@@ -13,7 +13,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Bashmach\\Composer\\Installers": "src/"
+            "Bashmach\\Composer\\Installers\\": "src/"
         }
     },
     "extra": {
