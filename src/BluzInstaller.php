@@ -4,7 +4,7 @@
  * @created 2015-03-24 11:15
  */
 
-namespace Composer\Installer;
+namespace Bashmach\Composer\Installer;
 
 use Composer\Package\PackageInterface;
 use Composer\Installer\BaseInstaller;

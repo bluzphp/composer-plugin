@@ -4,7 +4,7 @@
  * @created 2015-03-24 12:39
  */
 
-namespace Composer\Installer;
+namespace Bashmach\Composer\Installer;
 
 use Composer\Composer;
 use Composer\IO\IOInterface;
