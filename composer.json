@@ -16,5 +16,8 @@
             "Composer\\Installers\\BluzInstalller": "src/",
             "Composer\\Installers\\BluzPlugin": "src/"
         }
+    },
+    "extra": {
+        "class": "Composer\\Installer\\BluzInstaller"
     }
 }
