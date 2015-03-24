@@ -6,10 +6,11 @@
     "homepage": "https://github.com/bashmach/ComposerInstallerBluz",
     "license": "MIT",
     "require": {
-        "composer-plugin-api": "1.0.0"
+        "composer-plugin-api": "1.0.0",
+        "composer/installers": "*"
     },
     "require-dev": {
-        "composer/installers": "*"
+
     },
     "autoload": {
         "psr-4": {
