@@ -17,6 +17,6 @@
         }
     },
     "extra": {
-        "class": "Composer\\Installer\\BluzInstaller"
+        "class": "Bashmach\\Composer\\Installer\\BluzInstaller"
     }
 }
