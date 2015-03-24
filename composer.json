@@ -16,8 +16,5 @@
         "psr-4": {
             "Bashmach\\Composer\\Installers\\": "src/"
         }
-    },
-    "extra": {
-        "class": "Bashmach\\Composer\\Installers\\BluzInstaller"
     }
 }
