@@ -9,7 +9,6 @@ namespace Bashmach\Composer\Installer;
 use Composer\Composer;
 use Composer\IO\IOInterface;
 use Composer\Plugin\PluginInterface;
-use Composer\Installer\BluzInstaller;
 
 class BluzPlugin implements PluginInterface
 {
