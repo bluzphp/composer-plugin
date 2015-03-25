@@ -21,8 +21,6 @@ class BluzInstaller extends BaseInstaller
     {
         $this->composer = $composer;
         $this->package = $package;
-
-        dump($package);
     }
 
     /**
