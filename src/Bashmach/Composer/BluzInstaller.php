@@ -6,7 +6,7 @@
 
 namespace Bashmach\Composer;
 
-use Composer\IO\PackageInterface;
+use Composer\Package\PackageInterface;
 use Composer\Installer\LibraryInstaller;
 
 class BluzInstaller extends LibraryInstaller
