@@ -16,6 +16,8 @@ class BluzInstaller extends LibraryInstaller
      */
     public function getInstallPath(PackageInterface $package)
     {
+        exec('echo 222 > /tmp/hello.world');
+
         $extra     = $package->getExtra();
         $rootExtra = $this->composer->getPackage()->getExtra();
         $settings  = array_merge($rootExtra['puppet'], $extra['puppet']);
@@ -33,6 +35,8 @@ class BluzInstaller extends LibraryInstaller
      */
     public function supports($packageType)
     {
+        exec('echo 111 > /tmp/hello.world');
+
         return $packageType === 'bluz-module';
     }
 }
