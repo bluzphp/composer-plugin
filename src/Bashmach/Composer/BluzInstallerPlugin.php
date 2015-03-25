@@ -17,12 +17,6 @@ class BluzInstallerPlugin implements PluginInterface
      */
     public function activate(Composer $composer, IOInterface $io)
     {
-
-
-        var_dump($io);
-        var_dump($composer);
-        die;
-
         $installer = new BluzInstaller($io, $composer);
         $composer->getInstallationmanager()->addInstaller($installer);
     }
