@@ -1,23 +1,20 @@
 {
     "name": "bashmach/composer-installer-bluz",
     "description": "This custom installer allows you to manage Bluz Skeleton modules with composer.",
-    "type": "composer-installer",
+    "type": "composer-plugin",
     "keywords": ["bluz", "composer"],
-    "homepage": "https://github.com/bashmach/ComposerInstallerBluz",
+    "homepage": "https://github.com/bashmach/composer-installer-bluz",
     "license": "MIT",
     "require": {
         "composer-plugin-api": "1.0.0",
         "composer/installers": "*"
     },
-    "require-dev": {
-
-    },
     "autoload": {
         "psr-0": {
-            "Bashmach\\": "src/"
+            "Bashmach\\Composer": "src/"
         }
     },
     "extra": {
-        "class": "Bashmach\\Composer\\Installers\\BluzInstaller"
+        "class": "Bashmach\\Composer\\BluzInstallerPlugin"
     }
 }

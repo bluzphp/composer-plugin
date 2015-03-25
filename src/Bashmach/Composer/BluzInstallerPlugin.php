@@ -4,13 +4,13 @@
  * @created 2015-03-24 12:39
  */
 
-namespace Bashmach\Composer\Installer;
+namespace Bashmach\Composer;
 
 use Composer\Composer;
 use Composer\IO\IOInterface;
 use Composer\Plugin\PluginInterface;
 
-class BluzPlugin implements PluginInterface
+class BluzInstallerPlugin implements PluginInterface
 {
     /**
      * {@inheritDoc}
