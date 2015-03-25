@@ -6,27 +6,15 @@
 
 namespace Bashmach\Composer;
 
-use Composer\Package\PackageInterface;
-use Composer\Installers\BaseInstaller;
+use Composer\IO\PackageInterface;
+use Composer\Installers\LibraryInstaller;
 
-class BluzInstaller extends BaseInstaller
+class BluzInstaller extends LibraryInstaller
 {
-    /**
-     * Initializes base installer.
-     *
-     * @param PackageInterface $package
-     * @param Composer         $composer
-     */
-    public function __construct(PackageInterface $package = null, Composer $composer = null)
-    {
-        $this->composer = $composer;
-        $this->package = $package;
-    }
-
     /**
      * {@inheritDoc}
      */
-    public function getInstallPath(PackageInterface $package, $frameworkType = '')
+    public function getInstallPath(PackageInterface $package)
     {
         $extra     = $package->getExtra();
         $rootExtra = $this->composer->getPackage()->getExtra();
