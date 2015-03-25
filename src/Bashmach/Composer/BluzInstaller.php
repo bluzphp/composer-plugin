@@ -12,6 +12,20 @@ use Composer\Installers\BaseInstaller;
 class BluzInstaller extends BaseInstaller
 {
     /**
+     * Initializes base installer.
+     *
+     * @param PackageInterface $package
+     * @param Composer         $composer
+     */
+    public function __construct(PackageInterface $package = null, Composer $composer = null)
+    {
+        $this->composer = $composer;
+        $this->package = $package;
+
+        dump($package);
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function getInstallPath(PackageInterface $package, $frameworkType = '')

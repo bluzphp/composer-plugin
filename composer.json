@@ -9,6 +9,9 @@
         "composer-plugin-api": "1.0.0",
         "composer/installers": "*"
     },
+    "require-dev": {
+        "symfony/var-dumper": "*"
+    },
     "autoload": {
         "psr-0": {
             "Bashmach\\Composer": "src/"
