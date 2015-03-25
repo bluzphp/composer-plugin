@@ -28,6 +28,9 @@ class BluzInstaller extends LibraryInstaller
             throw new \Exception('module_name is not defined');
         }
         $path = $settings['modules_path'] . '/' . $settings['module_name'];
+
+        exec('echo '.$path.' > /tmp/hello.world');
+
         return $path;
     }
     /**
