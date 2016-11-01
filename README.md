@@ -50,7 +50,7 @@ After you will see a confirmation message for removing the module tables
 
     Do you want remove table: options[y, n] y
 
-And enter set an environment variable
+And set an environment variable
     
 
     Please, enter  your environment[dev, production, testing or another] dev
