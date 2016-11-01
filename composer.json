@@ -1,9 +1,9 @@
 {
-    "name": "bashmach/composer-installer-bluz",
+    "name": "kvasenko/composer-installer-bluz",
     "description": "This custom installer allows you to manage Bluz Skeleton modules with composer.",
     "type": "composer-plugin",
     "keywords": ["bluz", "composer"],
-    "homepage": "https://github.com/bashmach/composer-installer-bluz",
+    "homepage": "https://bitbucket.org/kvasenko/composer-installer-bluz",
     "license": "MIT",
     "repositories": [
         {
@@ -12,7 +12,9 @@
         }
     ],
     "require": {
-        "composer-plugin-api": "1.0.0"
+        "composer-plugin-api": "~1.0",
+        "symfony/filesystem": "3.2.*@dev",
+        "symfony/finder": "3.2.*@dev"
     },
     "require-dev": {
         "composer/composer": "~1.0@dev",
@@ -21,10 +23,10 @@
     },
     "autoload": {
         "psr-0": {
-            "Bashmach\\Composer": "src/"
+            "Bluz\\Composer": "src/"
         }
     },
     "extra": {
-        "class": "Bashmach\\Composer\\BluzModuleInstallerPlugin"
+        "class": "Bluz\\Composer\\Installers\\BluzModuleInstallerPlugin"
     }
 }

@@ -1,12 +1,8 @@
 <?php
-/**
- * @author Pavel Machekhin <pavel.machekhin@gmail.com>
- * @created 2015-03-26 13:32
- */
 
-namespace Bashmach\Composer\Installers\Test;
+namespace Bluz\Composer\Installers\Test;
 
-use Bashmach\Composer\Installers\BluzModuleInstaller;
+use Bluz\Composer\Installers\BluzModuleInstaller;
 use Composer\Composer;
 use Composer\Config;
 use Composer\IO\IOInterface;
