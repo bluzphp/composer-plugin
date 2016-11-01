@@ -10,18 +10,17 @@ Requirements
 
 Available modules
 -------------------------
-* bluz-options-module
-* bluz-categories-module
-* bluz-media-module
-* bluz-google-module
-* bluz-facebook-module
-* bluz-twitter-module
-* bluz-test-module
+* [bluzphp/bluz-options-module](https://github.com/bluzphp/bluz-options-module)
+* [bluzphp/bluz-categories-module](https://github.com/bluzphp/bluz-categories-module)
+* [bluzphp/bluz-media-module](https://github.com/bluzphp/bluz-media-module)
+* [bluzphp/bluz-google-module](https://github.com/bluzphp/bluz-google-module)
+* [bluzphp/bluz-twitter-module](https://github.com/bluzphp/bluz-twitter-module)
+* [bluzphp/bluz-test-module](https://github.com/bluzphp/bluz-test-module)
 
 Usage
 -------------------------
 ### Install module
-For install the module, you must run the command:
+To install the module run the command:
   
 
     $ composer require bluzphp/bluz-options-module
@@ -40,7 +39,7 @@ If you use no-interaction mode, you must set an environment variable
 
 
 ### Remove module
-For remove the module, you must run the command:
+To remove the module, run the command:
     
 
     $ composer remove bluzphp/bluz-options-module
@@ -48,7 +47,7 @@ For remove the module, you must run the command:
 
 After you will see a confirmation message for removing the module tables
 
-    Do you want remove table: options[y, n] y
+    Do you want to remove table: options[y, n] y
 
 And set an environment variable
     

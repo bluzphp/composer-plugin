@@ -128,7 +128,7 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
                     $answer = $this->installer->getIo()
                         ->ask(
                             '    <info>'.
-                            'Do you want remove tables: ' .
+                            'Do you want to remove tables: ' .
                             $this->installer->getSetting('required_models') .
                             '[y, n]' .
                             '</info> ', '?'
