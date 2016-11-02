@@ -183,14 +183,17 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
 
     protected function copyFolders()
     {
-        $this->copyModule();
-        $this->copyAssets();
-        $this->copyTests();
+        if (file_exists($this->installer->getSetting('vendorPath'))) {
+            $this->copyModule();
+            $this->copyAssets();
+            $this->copyTests();
+        }
     }
 
     protected function copyModule()
     {
         $finder = new Finder();
+
         $finder->in($this->installer->getSetting('vendorPath'))
             ->path('src')
             ->depth('== 1')
@@ -297,6 +300,12 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
     protected function removeTests()
     {
         $modelNames = explode(',', $this->installer->getSetting('required_models'));
+
+        if (empty($modelNames)) {
+            $this->getFilesystem()->remove(
+                $this->getPathHelper()->getTestModelsPath() . DS .
+                ucfirst(trim($this->getPathHelper()->getModuleName())));
+        }
 
         foreach ($modelNames as $name) {
             $this->getFilesystem()->remove($this->getPathHelper()->getTestModelsPath() .DS .ucfirst(trim($name)));
