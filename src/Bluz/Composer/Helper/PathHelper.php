@@ -20,19 +20,18 @@ class PathHelper
         return $this->moduleName;
     }
 
-    public function getTestModulePath(): string
+    public function getTestModulesPath(): string
     {
         return ROOT_PATH . DS .
         'tests' . DS .
-        'modules' . DS .
-        $this->moduleName;
+        'modules';
     }
 
     public function getTestModelsPath(): string
     {
         return ROOT_PATH . DS .
         'tests' . DS .
-        'models' . DS;
+        'models';
     }
 
     public function getModelsPath(): string
@@ -50,18 +49,33 @@ class PathHelper
     public function getModulesPath(): string
     {
         return ROOT_PATH . DS .
-        self::MODULES_PATH . DS;
+        self::MODULES_PATH;
     }
 
     public function getDumpPath(): string
     {
-        return $this->getModulesPath() .
+        return $this->getModulesPath() . DS .
         $this->moduleName . DS .
         self::DUMP_FILE_NAME;
     }
 
     public function getModulePath(): string
     {
-        return $this->getModulesPath() . $this->moduleName;
+        return $this->getModulesPath() . DS . $this->moduleName;
+    }
+
+    public function getJsFilesPath(): string
+    {
+        return $this->getPublicPath() . DS . 'js' . DS . $this->moduleName;
+    }
+
+    public function getCssFilesPath(): string
+    {
+        return $this->getPublicPath() . DS . 'css' . DS . $this->moduleName;
+    }
+
+    public function getFontsFilesPath(): string
+    {
+        return $this->getPublicPath() . DS . 'css' . DS . $this->moduleName;
     }
 }

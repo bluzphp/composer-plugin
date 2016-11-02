@@ -26,8 +26,10 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
     protected $installer;
 
     const PERMISSION_CODE = 0755;
-
     const REPEAT = 5;
+    const SKIP_MODELS = [
+        'auth'
+    ];
 
     /**
      * @var Filesystem
@@ -89,7 +91,7 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
             $this->installer->getSetting('module_name')
         );
 
-        $this->moveFolders();
+        $this->copyFolders();
 
         if (file_exists($this->getPathHelper()->getDumpPath())) {
             $this->initConfig();
@@ -128,7 +130,7 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
                     $answer = $this->installer->getIo()
                         ->ask(
                             '    <info>'.
-                            'Do you want to remove tables: ' .
+                            'Do you want remove tables: ' .
                             $this->installer->getSetting('required_models') .
                             '[y, n]' .
                             '</info> ', '?'
@@ -179,7 +181,7 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
         }
     }
 
-    protected function moveFolders()
+    protected function copyFolders()
     {
         $this->copyModule();
         $this->copyAssets();
@@ -199,7 +201,7 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
                 case 'modules':
                     $this->copy(
                         $file->getRealPath(),
-                        $this->getPathHelper()->getModulePath()
+                        $this->getPathHelper()->getModulesPath()
                     );
                     break;
                 case 'models':
@@ -255,7 +257,7 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
         foreach ($finder as $file) {
             switch ($file->getBasename()) {
                 case 'modules':
-                    $this->copy($file->getRealPath(), $this->pathHelper->getTestModulePath());
+                    $this->copy($file->getRealPath(), $this->pathHelper->getTestModulesPath());
                     break;
                 case 'models':
                     $this->copy($file->getRealPath(), $this->pathHelper->getTestModelsPath());
@@ -297,26 +299,22 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
 
     protected function removeTests()
     {
-        $this->getFilesystem()->remove($this->getPathHelper()->getTestModelsPath());
-        $this->getFilesystem()->remove($this->getPathHelper()->getTestModulePath());
+        $modelNames = explode(',', $this->installer->getSetting('required_models'));
+
+        foreach ($modelNames as $name) {
+            $this->getFilesystem()->remove($this->getPathHelper()->getTestModelsPath() .DS .ucfirst(trim($name)));
+        }
+        $this->getFilesystem()->remove(
+            $this->getPathHelper()->getTestModulesPath() . DS .
+            $this->getPathHelper()->getModuleName()
+        );
     }
 
     protected function removeAssetsFiles()
     {
-        $this->getFilesystem()->remove(
-            $this->getPathHelper()->getPublicPath() . DS . 'js' . DS .
-            $this->installer->getSetting('module_name')
-        );
-
-        $this->getFilesystem()->remove(
-            $this->getPathHelper()->getPublicPath() . DS . 'css' . DS .
-            $this->installer->getSetting('module_name')
-        );
-
-        $this->getFilesystem()->remove(
-            $this->getPathHelper()->getPublicPath() . DS . 'fonts' . DS .
-            $this->installer->getSetting('module_name')
-        );
+        $this->getFilesystem()->remove($this->getPathHelper()->getJsFilesPath());
+        $this->getFilesystem()->remove($this->getPathHelper()->getCssFilesPath());
+        $this->getFilesystem()->remove($this->getPathHelper()->getFontsFilesPath());
     }
 
     protected function removeModule()
