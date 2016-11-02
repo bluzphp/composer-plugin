@@ -216,30 +216,27 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
 
     public function getDbConnection()
     {
-        if ($this->connection === null) {
-            $conf = $this->configDb->getOptions();
+        $conf = $this->configDb->getOptions();
 
-            if ($conf) {
-                $dsn = "$conf[type]:host=$conf[host];dbname=$conf[name]";
-                $this->connection = new \PDO($dsn, $conf['user'], $conf['pass']);
-            }
+        if ($conf) {
+            $dsn = "$conf[type]:host=$conf[host];dbname=$conf[name]";
+            $this->connection = new \PDO($dsn, $conf['user'], $conf['pass']);
         }
+
         return $this->connection;
     }
 
     protected function execSqlScript()
     {
-        if (!empty($this->getDbConnection())) {
+        $dbh = $this->getDbConnection();
+
+        if (!empty($dbh)) {
             $dumpPath = $this->getPathHelper()->getDumpPath();
 
             if (is_file($dumpPath) && is_readable($dumpPath)) {
                 $sql = file_get_contents($dumpPath);
 
-                $dbh = $this->getDbConnection();
-
-                if ($dbh->exec($sql)) {
-                    $this->installer->getIo()->write('    <info>Sql code was successfully executed!]</info> ');
-                }
+                $dbh->exec($sql);
                 $this->getFilesystem()->remove($dumpPath);
             }
         }
