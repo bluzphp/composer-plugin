@@ -10,12 +10,13 @@ Requirements
 
 Available modules
 -------------------------
-* [bluzphp/bluz-options-module](https://github.com/bluzphp/bluz-options-module)
-* [bluzphp/bluz-categories-module](https://github.com/bluzphp/bluz-categories-module)
-* [bluzphp/bluz-media-module](https://github.com/bluzphp/bluz-media-module)
-* [bluzphp/bluz-google-module](https://github.com/bluzphp/bluz-google-module)
-* [bluzphp/bluz-twitter-module](https://github.com/bluzphp/bluz-twitter-module)
-* [bluzphp/bluz-test-module](https://github.com/bluzphp/bluz-test-module)
+* [bluzphp/module-options](https://github.com/bluzphp/module-options)
+* [bluzphp/module-categories](https://github.com/bluzphp/module-categories)
+* [bluzphp/module-media](https://github.com/bluzphp/module-media)
+* [bluzphp/module-google](https://github.com/bluzphp/module-google)
+* [bluzphp/module-twitter](https://github.com/bluzphp/module-twitter)
+* [bluzphp/module-facebook](https://github.com/bluzphp/module-facebook)
+* [bluzphp/module-test](https://github.com/bluzphp/module-test)
 
 Usage
 -------------------------
@@ -23,7 +24,7 @@ Usage
 To install the module run the command:
   
 
-    $ composer require bluzphp/bluz-options-module
+    $ composer require bluzphp/module-options
 
 Then you must enter the environment
 
@@ -35,14 +36,14 @@ Then you must enter the environment
 If you use no-interaction mode, you must set an environment variable
   
 
-    $ ENV=dev composer require bluzphp/bluz-options-module -n
+    $ ENV=dev composer require bluzphp/module-options -n
 
 
 ### Remove module
 To remove the module, run the command:
     
 
-    $ composer remove bluzphp/bluz-options-module
+    $ composer remove bluzphp/module-options
 
 
 After you will see a confirmation message for removing the module tables
@@ -58,7 +59,7 @@ And set an environment variable
 If you use no-interaction mode, you must set an environment variable
   
 
-    $ ENV=dev composer remove bluzphp/bluz-options-module -n
+    $ ENV=dev composer remove bluzphp/module-options -n
 
 
 
