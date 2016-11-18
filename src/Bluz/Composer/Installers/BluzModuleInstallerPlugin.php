@@ -16,7 +16,9 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
-
+use Bluz\Application\Application as App;
+use Bluz\Db\Db;
+use Bluz\Proxy\Config;
 
 class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInterface
 {
@@ -25,11 +27,15 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
      */
     protected $installer;
 
+    protected $db;
+
     const PERMISSION_CODE = 0755;
     const REPEAT = 5;
     const SKIP_MODELS = [
         'auth'
     ];
+
+    protected $app = null;
 
     /**
      * @var Filesystem
@@ -49,11 +55,12 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
     public function __construct()
     {
         $this->filesystem = new Filesystem();
-        $this->configDb = new  ConfigDb();
 
         defined('ROOT_PATH') ? : define('ROOT_PATH', realpath($_SERVER['DOCUMENT_ROOT']));
         defined('DS') ? : define('DS', DIRECTORY_SEPARATOR);
-
+        defined('PATH_APPLICATION') ? : define('PATH_APPLICATION', ROOT_PATH . '/application');
+        defined('PATH_DATA') ? : define('PATH_DATA', ROOT_PATH . '/data');
+        defined('PATH_ROOT') ? : define('PATH_ROOT', ROOT_PATH);
     }
 
     /**
@@ -94,7 +101,6 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
         $this->copyFolders();
 
         if (file_exists($this->getPathHelper()->getDumpPath())) {
-            $this->initConfig();
             $this->execSqlScript();
         }
     }
@@ -115,54 +121,52 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
 
             if ($this->installer->getSetting('required_models')) {
                 $this->removeModels();
-
-                if (!empty(getenv('ENV'))) {
-                    return $this->removeTable();
-                }
-
-                $repeat = true;
-                $this->installer->getIo()->write(
-                    '    <info>' .
-                    'Removing `bluz-' . $this->installer->getSetting('module_name') . '-module` package' .
-                    '</info>'
-                );
-                while ($repeat) {
-                    $answer = $this->installer->getIo()
-                        ->ask(
-                            '    <info>'.
-                            'Do you want remove tables: ' .
-                            $this->installer->getSetting('required_models') .
-                            '[y, n]' .
-                            '</info> ', '?'
-                        );
-
-                    switch ($answer) {
-                        case 'y':
-                            $this->removeTable();
-                            $repeat = false;
-                            break;
-                        case 'n':
-                            $repeat = false;
-                            break;
-                    }
-                }
+                $this->removeTable();
             }
         }
     }
 
     protected function removeTable()
     {
-        $this->initConfig();
-        $dbh = $this->getDbConnection();
+        $repeat = self::REPEAT;
+        $answer = null;
 
-        $tables = explode(',', $this->installer->getSetting('required_models'));
+        $this->installer->getIo()->write(
+            '    <info>' .
+            'Removing `bluz-' . $this->installer->getSetting('module_name') . '-module` package' .
+            '</info>'
+        );
+        while ($repeat) {
+            $answer = $this->installer->getIo()
+                ->ask(
+                    '    <info>'.
+                    'Do you want remove tables: ' .
+                    $this->installer->getSetting('required_models') .
+                    '[y, n]' .
+                    '</info> ', '?'
+                );
 
-        foreach ($tables as $table) {
-            $dbh->exec('DROP TABLE IF EXISTS ' . $table);
+            switch ($answer) {
+                case 'y':
+                case 'n':
+                    $repeat = false;
+                    break;
+                default :
+                    $repeat--;
+            }
+
+        }
+
+        if ($answer === 'y') {
+            $tables = explode(',', $this->installer->getSetting('required_models'));
+
+            foreach ($tables as $table) {
+                $this->getDbConnection()->exec('DROP TABLE IF EXISTS ' . $table);
+            }
         }
     }
 
-    protected function initConfig()
+    protected function initApplication()
     {
         $repeat = self::REPEAT;
 
@@ -171,8 +175,8 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
                 $environment = !empty(getenv('ENV')) ? getenv('ENV') : $this->installer->getIo()
                     ->ask('    <info>Please, enter  your environment[dev, production, testing or another]</info> ', '!');
 
-                $this->configDb->setEnvironment($environment);
-                $this->configDb->init();
+                App::getInstance()->init($environment);
+
                 $repeat = false;
             } catch (Exception $exception) {
                 $this->installer->getIo()->writeError('<error>' . $exception->getMessage() . '</error>');
@@ -219,27 +223,28 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
 
     public function getDbConnection()
     {
-        $conf = $this->configDb->getOptions();
+        if (empty($this->db)) {
+            $this->initApplication();
 
-        if ($conf) {
-            $dsn = "$conf[type]:host=$conf[host];dbname=$conf[name]";
-            $this->connection = new \PDO($dsn, $conf['user'], $conf['pass']);
+            $db = new Db();
+
+            $connectData = Config::getData('db', 'connect');
+            $db->setConnect($connectData);
+            $this->db = $db->handler();
         }
 
-        return $this->connection;
+        return $this->db;
     }
 
     protected function execSqlScript()
     {
-        $dbh = $this->getDbConnection();
-
-        if (!empty($dbh)) {
+        if (!empty($this->getDbConnection())) {
             $dumpPath = $this->getPathHelper()->getDumpPath();
 
             if (is_file($dumpPath) && is_readable($dumpPath)) {
                 $sql = file_get_contents($dumpPath);
 
-                $dbh->exec($sql);
+                $this->getDbConnection()->exec($sql);
                 $this->getFilesystem()->remove($dumpPath);
             }
         }

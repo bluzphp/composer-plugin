@@ -6,7 +6,7 @@ Features
 
 Requirements
 -------------------------
-* PHP: 5.6 (or later)
+* PHP: 7 (or later)
 
 Available modules
 -------------------------
