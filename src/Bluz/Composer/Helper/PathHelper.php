@@ -1,5 +1,14 @@
 <?php
+/**
+ * Bluz composer plugin component
+ *
+ * @copyright Bluz PHP Team
+ * @link https://github.com/bluzphp/composer-plugin
+ */
 
+/**
+ * @namespace
+ */
 namespace Bluz\Composer\Helper;
 
 class PathHelper
@@ -10,12 +19,15 @@ class PathHelper
 
     protected $moduleName;
 
+    /**
+     * Create instance
+     */
     public function __construct($moduleName)
     {
         $this->moduleName = $moduleName;
     }
 
-    public function getModuleName()
+    public function getModuleName(): string
     {
         return $this->moduleName;
     }
