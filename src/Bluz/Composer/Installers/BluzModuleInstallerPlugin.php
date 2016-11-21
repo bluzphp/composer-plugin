@@ -20,8 +20,6 @@ use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\ScriptEvents;
-use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Finder\Finder;
 
 class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInterface
 {
@@ -41,11 +39,6 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
     protected $app = null;
 
     /**
-     * @var Filesystem
-     */
-    protected $filesystem;
-
-    /**
      * @var PathHelper
      */
     protected $pathHelper;
@@ -60,8 +53,6 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
      */
     public function __construct()
     {
-        $this->filesystem = new Filesystem();
-
         defined('ROOT_PATH') ? : define('ROOT_PATH', realpath($_SERVER['DOCUMENT_ROOT']));
         defined('DS') ? : define('DS', DIRECTORY_SEPARATOR);
         defined('PATH_APPLICATION') ? : define('PATH_APPLICATION', ROOT_PATH . '/application');
@@ -132,7 +123,7 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
             $this->installer->getSetting('module_name')
         );
 
-        if ($this->getFilesystem()->exists(
+        if (file_exists(
             $this->getPathHelper()->getModulesPath() . DS .
             $this->installer->getSetting('module_name'))
         ) {
@@ -231,27 +222,30 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
      */
     protected function copyModule()
     {
-        $finder = new Finder();
+        $srcDir = $this->installer->getSetting('vendorPath') . DS . 'src';
 
-        $finder->in($this->installer->getSetting('vendorPath'))
-            ->path('src')
-            ->depth('== 1')
-            ->ignoreUnreadableDirs();
+        if (file_exists($srcDir)) {
+            $handle = opendir($srcDir);
 
-        foreach ($finder as $file) {
-            switch ($file->getBasename()) {
-                case 'modules':
-                    $this->copy(
-                        $file->getRealPath(),
-                        $this->getPathHelper()->getModulesPath()
-                    );
-                    break;
-                case 'models':
-                    $this->copy(
-                        $file->getRealPath(),
-                        $this->getPathHelper()->getModelsPath()
-                    );
-                    break;
+            while ($fileName = readdir($handle)) {
+                $realPath = $srcDir . DS . $fileName;
+
+                if (is_dir($realPath)) {
+                    switch ($fileName) {
+                        case 'modules':
+                            $this->copy(
+                                $realPath,
+                                $this->pathHelper->getModulesPath()
+                            );
+                            break;
+                        case 'models':
+                            $this->copy(
+                                $realPath,
+                                $this->pathHelper->getModelsPath()
+                            );
+                            break;
+                    }
+                }
             }
         }
     }
@@ -286,7 +280,7 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
                 $sql = file_get_contents($dumpPath);
 
                 $this->getDbConnection()->exec($sql);
-                $this->getFilesystem()->remove($dumpPath);
+                $this->remove($dumpPath);
             }
         }
     }
@@ -296,20 +290,30 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
      */
     protected function copyTests()
     {
-        $finder = new Finder();
+        $testsPath = $this->installer->getSetting('vendorPath') . DS . 'tests';
 
-        $finder->in($this->installer->getSetting('vendorPath'))
-            ->path('tests')
-            ->depth('== 1')
-            ->ignoreUnreadableDirs();
+        if (file_exists($testsPath)) {
+            $handle = opendir($testsPath);
 
-        foreach ($finder as $file) {
-            switch ($file->getBasename()) {
-                case 'modules':
-                    $this->copy($file->getRealPath(), $this->pathHelper->getTestModulesPath());
-                    break;
-                case 'models':
-                    $this->copy($file->getRealPath(), $this->pathHelper->getTestModelsPath());
+            while ($fileName = readdir($handle)) {
+                $realPath = $testsPath . DS . $fileName;
+
+                if (is_dir($realPath)) {
+                    switch ($fileName) {
+                        case 'modules':
+                            $this->copy(
+                                $realPath,
+                                $this->pathHelper->getTestModulesPath()
+                            );
+                            break;
+                        case 'models':
+                            $this->copy(
+                                $realPath,
+                                $this->pathHelper->getTestModelsPath()
+                            );
+                            break;
+                    }
+                }
             }
         }
     }
@@ -319,28 +323,22 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
      */
     protected function copyAssets()
     {
-        $finder = new Finder();
-        $finder->directories()
-            ->in($this->installer->getSetting('vendorPath'))
-            ->path('assets')
-            ->depth('== 1')
-            ->ignoreUnreadableDirs();
+        $assetsPath = $this->installer->getSetting('vendorPath') . DS . 'assets';
 
-        foreach ($finder as $file) {
-            $this->copy(
-                $file->getRealPath(),
-                $this->getPathHelper()->getPublicPath() . DS . $file->getBasename() . DS .
-                $this->getPathHelper()->getModuleName()
-            );
+        if (file_exists($assetsPath)) {
+            $handle = opendir($assetsPath);
+
+            while ($fileName = readdir($handle)) {
+                if ($fileName != "." && $fileName != "..") {
+                    $this->copy(
+                        $assetsPath . DS . $fileName,
+                        $this->getPathHelper()->getPublicPath() . DS . $fileName . DS .
+                        $this->getPathHelper()->getModuleName()
+                    );
+                }
+            }
+
         }
-    }
-
-    /**
-     * Get fileSystem instance
-     */
-    protected function getFilesystem(): Filesystem
-    {
-        return $this->filesystem;
     }
 
     /**
@@ -351,7 +349,7 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
         $modelNames = explode(',', $this->installer->getSetting('required_models'));
 
         foreach ($modelNames as $name) {
-            $this->getFilesystem()->remove($this->getPathHelper()->getModelsPath() .DS .ucfirst(trim($name)));
+            $this->remove($this->getPathHelper()->getModelsPath() . DS . ucfirst(trim($name)));
         }
     }
 
@@ -363,15 +361,16 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
         $modelNames = explode(',', $this->installer->getSetting('required_models'));
 
         if (empty($modelNames)) {
-            $this->getFilesystem()->remove(
+            $this->remove(
                 $this->getPathHelper()->getTestModelsPath() . DS .
                 ucfirst(trim($this->getPathHelper()->getModuleName())));
         }
 
         foreach ($modelNames as $name) {
-            $this->getFilesystem()->remove($this->getPathHelper()->getTestModelsPath() .DS .ucfirst(trim($name)));
+            $this->remove($this->getPathHelper()->getTestModelsPath() . DS . ucfirst(trim($name)));
         }
-        $this->getFilesystem()->remove(
+
+        $this->remove(
             $this->getPathHelper()->getTestModulesPath() . DS .
             $this->getPathHelper()->getModuleName()
         );
@@ -382,9 +381,9 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
      */
     protected function removeAssetsFiles()
     {
-        $this->getFilesystem()->remove($this->getPathHelper()->getJsFilesPath());
-        $this->getFilesystem()->remove($this->getPathHelper()->getCssFilesPath());
-        $this->getFilesystem()->remove($this->getPathHelper()->getFontsFilesPath());
+        $this->remove($this->getPathHelper()->getJsFilesPath());
+        $this->remove($this->getPathHelper()->getCssFilesPath());
+        $this->remove($this->getPathHelper()->getFontsFilesPath());
     }
 
     /**
@@ -392,7 +391,7 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
      */
     protected function removeModule()
     {
-        $this->getFilesystem()->remove($this->getPathHelper()->getModulePath());
+        $this->remove($this->getPathHelper()->getModulePath());
     }
 
     /**
@@ -408,10 +407,8 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
      */
     public function copy(string $source, string $dest)
     {
-        $filesystem = $this->getFilesystem();
-
-        if (!$filesystem->exists($dest)) {
-            $filesystem->mkdir($dest, self::PERMISSION_CODE);
+        if (!file_exists($dest)) {
+            mkdir($dest, self::PERMISSION_CODE);
         }
 
         foreach (
@@ -419,11 +416,39 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
                 new \RecursiveDirectoryIterator($source, \RecursiveDirectoryIterator::SKIP_DOTS),
                 \RecursiveIteratorIterator::SELF_FIRST) as $item
         ) {
-            if ($item->isDir()) {
-                $filesystem->mkdir($dest . DS . $iterator->getSubPathName());
-            } else {
-                $filesystem->copy($item, $dest . DS . $iterator->getSubPathName());
+            $filePath = $dest . DS . $iterator->getSubPathName();
+
+            if (!file_exists($filePath)) {
+                if ($item->isDir()) {
+                    mkdir($filePath);
+                } else {
+                    copy($item, $filePath);
+                }
             }
+        }
+    }
+
+    /**
+     * It recursively removes the files and directories
+     */
+    public function remove(string $path)
+    {
+        if (is_file($path)) {
+            return unlink($path);
+        }
+
+        if (is_dir($path)) {
+            foreach(
+                $iterator = new \RecursiveIteratorIterator(
+                    new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS),
+                    \RecursiveIteratorIterator::CHILD_FIRST) as $item) {
+                if ($item->isDir()){
+                    rmdir($item->getRealPath());
+                } else {
+                    unlink($item->getRealPath());
+                }
+            }
+            rmdir($path);
         }
     }
 }
