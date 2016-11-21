@@ -37,10 +37,6 @@ class BluzModuleInstaller extends LibraryInstaller
             throw new \Exception('module_name is not defined');
         }
 
-        if (empty($this->getSetting('required_models'))) {
-            throw new \Exception('required_models is not defined');
-        }
-
         $vendorPath = parent::getInstallPath($package);
         $this->setSetting('vendorPath', $vendorPath);
 
