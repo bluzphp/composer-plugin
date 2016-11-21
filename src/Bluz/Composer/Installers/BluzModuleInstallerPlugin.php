@@ -1,24 +1,27 @@
 <?php
+/**
+ * Bluz composer plugin
+ *
+ * @copyright Bluz PHP Team
+ * @link https://github.com/bluzphp/composer-plugin
+ */
 
+/**
+ * @namespace
+ */
 namespace Bluz\Composer\Installers;
 
-use Bluz\Composer\Config\ConfigDb;
+use Bluz\Application\Application as App;
 use Bluz\Composer\Helper\PathHelper;
+use Bluz\Db\Db;
+use Bluz\Proxy\Config;
 use Composer\Composer;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
 use Composer\Plugin\PluginInterface;
-use Composer\Script\PackageEvent;
 use Composer\Script\ScriptEvents;
-use Exception;
-use PDO;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
-use Bluz\Application\Application as App;
-use Bluz\Db\Db;
-use Bluz\Proxy\Config;
 
 class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInterface
 {
@@ -48,10 +51,13 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
     protected $pathHelper;
 
     /**
-     * @var PDO
+     * @var \PDO
      */
     protected $connection;
 
+    /**
+     * Create instance, define constants
+     */
     public function __construct()
     {
         $this->filesystem = new Filesystem();
@@ -64,6 +70,10 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
     }
 
     /**
+     * Called after the plugin is loaded
+     *
+     * It setup composer installer
+     *
      * {@inheritDoc}
      */
     public function activate(Composer $composer, IOInterface $io)
@@ -73,6 +83,8 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
     }
 
     /**
+     * Registered events after the plugin is loaded
+     *
      * {@inheritDoc}
      */
     public static function getSubscribedEvents(): array
@@ -92,7 +104,12 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
         return $result;
     }
 
-    public function onPostPackageInstallOrUpdate(PackageEvent $event)
+    /**
+     * Hook which is called after install or update package
+     *
+     * It copies bluz module
+     */
+    public function onPostPackageInstallOrUpdate()
     {
         $this->pathHelper = new PathHelper(
             $this->installer->getSetting('module_name')
@@ -104,8 +121,12 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
             $this->execSqlScript();
         }
     }
-
-    public function onPostPackageUninstall(PackageEvent $event)
+    /**
+     * Hook which is called after removing package
+     *
+     * It removes bluz module
+     */
+    public function onPostPackageUninstall()
     {
         $this->pathHelper = new PathHelper(
             $this->installer->getSetting('module_name')
@@ -126,6 +147,9 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
         }
     }
 
+    /**
+     * It removes module tables
+     */
     protected function removeTable()
     {
         $repeat = self::REPEAT;
@@ -166,6 +190,11 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
         }
     }
 
+    /**
+     * Initializing the bluz application, set environment
+     *
+     * @throws \Exception if initialization failed.
+     */
     protected function initApplication()
     {
         $repeat = self::REPEAT;
@@ -178,13 +207,16 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
                 App::getInstance()->init($environment);
 
                 $repeat = false;
-            } catch (Exception $exception) {
+            } catch (\Exception $exception) {
                 $this->installer->getIo()->writeError('<error>' . $exception->getMessage() . '</error>');
                 --$repeat;
             }
         }
     }
 
+    /**
+     * It copies all folders
+     */
     protected function copyFolders()
     {
         if (file_exists($this->installer->getSetting('vendorPath'))) {
@@ -194,6 +226,9 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
         }
     }
 
+    /**
+     * It copies module and models
+     */
     protected function copyModule()
     {
         $finder = new Finder();
@@ -221,6 +256,9 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
         }
     }
 
+    /**
+     * Get database connection
+     */
     public function getDbConnection()
     {
         if (empty($this->db)) {
@@ -236,6 +274,9 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
         return $this->db;
     }
 
+    /**
+     * It executes sql dump
+     */
     protected function execSqlScript()
     {
         if (!empty($this->getDbConnection())) {
@@ -250,6 +291,9 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
         }
     }
 
+    /**
+     * Copy tests of module
+     */
     protected function copyTests()
     {
         $finder = new Finder();
@@ -270,6 +314,9 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
         }
     }
 
+    /**
+     * It copies assets files of module
+     */
     protected function copyAssets()
     {
         $finder = new Finder();
@@ -288,11 +335,17 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
         }
     }
 
+    /**
+     * Get fileSystem instance
+     */
     protected function getFilesystem(): Filesystem
     {
         return $this->filesystem;
     }
 
+    /**
+     * It removes models of module
+     */
     protected function removeModels()
     {
         $modelNames = explode(',', $this->installer->getSetting('required_models'));
@@ -302,6 +355,9 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
         }
     }
 
+    /**
+     * It removes tests of module
+     */
     protected function removeTests()
     {
         $modelNames = explode(',', $this->installer->getSetting('required_models'));
@@ -321,6 +377,9 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
         );
     }
 
+    /**
+     * It removes assets files of module
+     */
     protected function removeAssetsFiles()
     {
         $this->getFilesystem()->remove($this->getPathHelper()->getJsFilesPath());
@@ -328,16 +387,25 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
         $this->getFilesystem()->remove($this->getPathHelper()->getFontsFilesPath());
     }
 
+    /**
+     * It removes controllers and views of module
+     */
     protected function removeModule()
     {
         $this->getFilesystem()->remove($this->getPathHelper()->getModulePath());
     }
 
+    /**
+     * Get pathHelper object
+     */
     public function getPathHelper(): PathHelper
     {
         return $this->pathHelper;
     }
 
+    /**
+     * It recursively copies the files and directories
+     */
     public function copy(string $source, string $dest)
     {
         $filesystem = $this->getFilesystem();
@@ -347,9 +415,9 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
         }
 
         foreach (
-            $iterator = new RecursiveIteratorIterator(
-                new RecursiveDirectoryIterator($source, RecursiveDirectoryIterator::SKIP_DOTS),
-                RecursiveIteratorIterator::SELF_FIRST) as $item
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($source, \RecursiveDirectoryIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::SELF_FIRST) as $item
         ) {
             if ($item->isDir()) {
                 $filesystem->mkdir($dest . DS . $iterator->getSubPathName());

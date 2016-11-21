@@ -1,9 +1,19 @@
 <?php
+/**
+ * Bluz composer installer
+ *
+ * @copyright Bluz PHP Team
+ * @link https://github.com/bluzphp/composer-plugin
+ */
 
+/**
+ * @namespace
+ */
 namespace Bluz\Composer\Installers;
 
-use Composer\Package\PackageInterface;
 use Composer\Installer\LibraryInstaller;
+use Composer\IO\IOInterface;
+use Composer\Package\PackageInterface;
 
 
 class BluzModuleInstaller extends LibraryInstaller
@@ -38,6 +48,8 @@ class BluzModuleInstaller extends LibraryInstaller
     }
 
     /**
+     * Check type of the plugin
+     *
      * {@inheritDoc}
      */
     public function supports($packageType)
@@ -68,7 +80,7 @@ class BluzModuleInstaller extends LibraryInstaller
         return null;
     }
 
-    public function getIo()
+    public function getIo(): IOInterface
     {
         return $this->io;
     }
