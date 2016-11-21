@@ -1,9 +1,9 @@
 {
-    "name": "kvasenko/composer-installer-bluz",
+    "name": "bluzphp/composer-plugin",
     "description": "This custom installer allows you to manage Bluz Skeleton modules with composer.",
     "type": "composer-plugin",
     "keywords": ["bluz", "composer"],
-    "homepage": "https://bitbucket.org/kvasenko/composer-installer-bluz",
+    "homepage": "https://github.com/bluzphp/composer-plugin",
     "license": "MIT",
     "repositories": [
         {
