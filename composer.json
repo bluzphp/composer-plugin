@@ -15,7 +15,7 @@
         "php": ">=7.0",
         "bluzphp/framework": "~7.0",
         "composer-plugin-api": "~1.0",
-        "symfony/filesystem": "3.2.*@dev",
+        "symfony/filesystem": "3.3.*@dev",
         "symfony/finder": "3.3.*@dev"
     },
     "require-dev": {
