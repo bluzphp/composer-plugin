@@ -11,17 +11,17 @@
  */
 namespace Bluz\Composer\Installers;
 
-use Bluz\Application\Application as App;
 use Bluz\Composer\Helper\PathHelper;
-use Bluz\Db\Db;
-use Bluz\Proxy\Config;
+use Bluz\Config\Config;
+use Bluz\Proxy\Config as ProxyConfig;
+use Bluz\Proxy\Db;
 use Composer\Composer;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\ScriptEvents;
 
-class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInterface
+class Plugin implements PluginInterface, EventSubscriberInterface
 {
     /**
      * @var BluzModuleInstaller
@@ -69,7 +69,7 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
      */
     public function activate(Composer $composer, IOInterface $io)
     {
-        $this->installer = new BluzModuleInstaller($io, $composer);
+        $this->installer = new Installer($io, $composer);
         $composer->getInstallationManager()->addInstaller($this->installer);
     }
 
@@ -103,7 +103,7 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
     public function onPostPackageInstallOrUpdate()
     {
         $this->pathHelper = new PathHelper(
-            $this->installer->getSetting('module_name')
+            $this->installer->getOption('module_name')
         );
 
         $this->copyFolders();
@@ -120,18 +120,18 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
     public function onPostPackageUninstall()
     {
         $this->pathHelper = new PathHelper(
-            $this->installer->getSetting('module_name')
+            $this->installer->getOption('module_name')
         );
 
         if (file_exists(
             $this->getPathHelper()->getModulesPath() . DS .
-            $this->installer->getSetting('module_name'))
+            $this->installer->getOption('module_name'))
         ) {
             $this->removeModule();
             $this->removeTests();
             $this->removeAssetsFiles();
 
-            if ($this->installer->getSetting('required_models')) {
+            if ($this->installer->getOption('required_models')) {
                 $this->removeModels();
                 $this->removeTable();
             }
@@ -148,7 +148,7 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
 
         $this->installer->getIo()->write(
             '    <info>' .
-            'Removing `bluz-' . $this->installer->getSetting('module_name') . '-module` package' .
+            'Removing `bluz-' . $this->installer->getOption('module_name') . '-module` package' .
             '</info>'
         );
         while ($repeat) {
@@ -156,7 +156,7 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
                 ->ask(
                     '    <info>'.
                     'Do you want remove tables: ' .
-                    $this->installer->getSetting('required_models') .
+                    $this->installer->getOption('required_models') .
                     '[y, n]' .
                     '</info> ', '?'
                 );
@@ -173,7 +173,7 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
         }
 
         if ($answer === 'y') {
-            $tables = explode(',', $this->installer->getSetting('required_models'));
+            $tables = explode(',', $this->installer->getOption('required_models'));
 
             foreach ($tables as $table) {
                 $this->getDbConnection()->exec('DROP TABLE IF EXISTS ' . $table);
@@ -182,11 +182,11 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
     }
 
     /**
-     * Initializing the bluz application, set environment
+     * Initializing the bluz config, set environment
      *
      * @throws \Exception if initialization failed.
      */
-    protected function initApplication()
+    protected function initConfig()
     {
         $repeat = self::REPEAT;
 
@@ -195,7 +195,11 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
                 $environment = !empty(getenv('ENV')) ? getenv('ENV') : $this->installer->getIo()
                     ->ask('    <info>Please, enter  your environment[dev, production, testing or another]</info> ', '!');
 
-                App::getInstance()->init($environment);
+                $config = new Config();
+                $config ->setPath(PATH_APPLICATION);
+                $config ->setEnvironment($environment);
+                $config ->init();
+                ProxyConfig::setInstance($config);
 
                 $repeat = false;
             } catch (\Exception $exception) {
@@ -210,7 +214,7 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
      */
     protected function copyFolders()
     {
-        if (file_exists($this->installer->getSetting('vendorPath'))) {
+        if (file_exists($this->installer->getOption('vendorPath'))) {
             $this->copyModule();
             $this->copyAssets();
             $this->copyTests();
@@ -222,7 +226,7 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
      */
     protected function copyModule()
     {
-        $srcDir = $this->installer->getSetting('vendorPath') . DS . 'src';
+        $srcDir = $this->installer->getOption('vendorPath') . DS . 'src';
 
         if (file_exists($srcDir)) {
             $handle = opendir($srcDir);
@@ -256,16 +260,11 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
     public function getDbConnection()
     {
         if (empty($this->db)) {
-            $this->initApplication();
-
-            $db = new Db();
-
-            $connectData = Config::getData('db', 'connect');
-            $db->setConnect($connectData);
-            $this->db = $db->handler();
+            $this->initConfig();
+            $this->db = Db::getInstance();
         }
 
-        return $this->db;
+        return $this->db->handler();
     }
 
     /**
@@ -290,7 +289,7 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
      */
     protected function copyTests()
     {
-        $testsPath = $this->installer->getSetting('vendorPath') . DS . 'tests';
+        $testsPath = $this->installer->getOption('vendorPath') . DS . 'tests';
 
         if (file_exists($testsPath)) {
             $handle = opendir($testsPath);
@@ -323,7 +322,7 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
      */
     protected function copyAssets()
     {
-        $assetsPath = $this->installer->getSetting('vendorPath') . DS . 'assets';
+        $assetsPath = $this->installer->getOption('vendorPath') . DS . 'assets';
 
         if (file_exists($assetsPath)) {
             $handle = opendir($assetsPath);
@@ -346,7 +345,7 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
      */
     protected function removeModels()
     {
-        $modelNames = explode(',', $this->installer->getSetting('required_models'));
+        $modelNames = explode(',', $this->installer->getOption('required_models'));
 
         foreach ($modelNames as $name) {
             $this->remove($this->getPathHelper()->getModelsPath() . DS . ucfirst(trim($name)));
@@ -358,7 +357,7 @@ class BluzModuleInstallerPlugin implements PluginInterface, EventSubscriberInter
      */
     protected function removeTests()
     {
-        $modelNames = explode(',', $this->installer->getSetting('required_models'));
+        $modelNames = explode(',', $this->installer->getOption('required_models'));
 
         if (empty($modelNames)) {
             $this->remove(

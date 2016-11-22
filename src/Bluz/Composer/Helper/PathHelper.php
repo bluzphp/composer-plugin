@@ -27,11 +27,17 @@ class PathHelper
         $this->moduleName = $moduleName;
     }
 
+    /**
+     * Get module name
+     */
     public function getModuleName(): string
     {
         return $this->moduleName;
     }
 
+    /**
+     * Get path to the tests module directory
+     */
     public function getTestModulesPath(): string
     {
         return ROOT_PATH . DS .
@@ -39,6 +45,9 @@ class PathHelper
         'modules';
     }
 
+    /**
+     * Get path to the tests model directory
+     */
     public function getTestModelsPath(): string
     {
         return ROOT_PATH . DS .
@@ -46,6 +55,9 @@ class PathHelper
         'models';
     }
 
+    /**
+     * Get path to the models
+     */
     public function getModelsPath(): string
     {
         return $this->getModulesPath() . DS .
@@ -53,17 +65,26 @@ class PathHelper
         'models';
     }
 
+    /**
+     * Get path to the public directory
+     */
     public function getPublicPath(): string
     {
         return ROOT_PATH . DS. 'public';
     }
 
+    /**
+     * Get path to the modules directory
+     */
     public function getModulesPath(): string
     {
         return ROOT_PATH . DS .
         self::MODULES_PATH;
     }
 
+    /**
+     * Get path to the sql dump
+     */
     public function getDumpPath(): string
     {
         return $this->getModulesPath() . DS .
@@ -71,23 +92,35 @@ class PathHelper
         self::DUMP_FILE_NAME;
     }
 
+    /**
+     * Get path to the module
+     */
     public function getModulePath(): string
     {
         return $this->getModulesPath() . DS . $this->moduleName;
     }
 
+    /**
+     * Get path to the js files
+     */
     public function getJsFilesPath(): string
     {
         return $this->getPublicPath() . DS . 'js' . DS . $this->moduleName;
     }
 
+    /**
+     * Get path to the css files
+     */
     public function getCssFilesPath(): string
     {
         return $this->getPublicPath() . DS . 'css' . DS . $this->moduleName;
     }
 
+    /**
+     * Get path to the css files
+     */
     public function getFontsFilesPath(): string
     {
-        return $this->getPublicPath() . DS . 'css' . DS . $this->moduleName;
+        return $this->getPublicPath() . DS . 'fonts' . DS . $this->moduleName;
     }
 }

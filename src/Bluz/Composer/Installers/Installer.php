@@ -11,19 +11,19 @@
  */
 namespace Bluz\Composer\Installers;
 
+use Bluz\Common\Options;
 use Composer\Installer\LibraryInstaller;
 use Composer\IO\IOInterface;
 use Composer\Package\PackageInterface;
 
 
-class BluzModuleInstaller extends LibraryInstaller
+class Installer extends LibraryInstaller
 {
-    /**
-     * @var array
-     */
-    protected $settings;
+    use Options;
 
     /**
+     * Get path to the installation package
+     *
      * {@inheritDoc}
      */
     public function getInstallPath(PackageInterface $package): string
@@ -31,14 +31,14 @@ class BluzModuleInstaller extends LibraryInstaller
         $extra     = $package->getExtra();
         $rootExtra = $this->composer->getPackage()->getExtra();
 
-        $this->setSettings(array_merge($rootExtra, $extra['bluz']));
+        $this->setOptions(array_merge($rootExtra, $extra['bluz']));
 
-        if (empty($this->getSetting('module_name'))) {
+        if (empty($this->getOption('module_name'))) {
             throw new \Exception('module_name is not defined');
         }
 
         $vendorPath = parent::getInstallPath($package);
-        $this->setSetting('vendorPath', $vendorPath);
+        $this->setOption('vendorPath', $vendorPath);
 
         return $vendorPath;
     }
@@ -53,29 +53,9 @@ class BluzModuleInstaller extends LibraryInstaller
         return $packageType === 'bluz-module';
     }
 
-    public function setSettings(array $settings)
-    {
-        $this->settings = $settings;
-    }
-
-    public function setSetting(string $key, string $value)
-    {
-        $this->settings[$key] = $value;
-    }
-
-    public function getSettings()
-    {
-        return $this->settings;
-    }
-
-    public function getSetting(string $key)
-    {
-        if (isset($this->settings[$key])) {
-            return $this->settings[$key];
-        }
-        return null;
-    }
-
+    /**
+     * Get inputOutput instance
+     */
     public function getIo(): IOInterface
     {
         return $this->io;
