@@ -40,7 +40,7 @@ class PathHelper
      */
     public function getTestModulesPath(): string
     {
-        return ROOT_PATH . DS .
+        return PATH_ROOT . DS .
         'tests' . DS .
         'modules';
     }
@@ -50,7 +50,7 @@ class PathHelper
      */
     public function getTestModelsPath(): string
     {
-        return ROOT_PATH . DS .
+        return PATH_ROOT . DS .
         'tests' . DS .
         'models';
     }
@@ -70,7 +70,7 @@ class PathHelper
      */
     public function getPublicPath(): string
     {
-        return ROOT_PATH . DS. 'public';
+        return PATH_ROOT . DS. 'public';
     }
 
     /**
@@ -78,7 +78,7 @@ class PathHelper
      */
     public function getModulesPath(): string
     {
-        return ROOT_PATH . DS .
+        return PATH_ROOT . DS .
         self::MODULES_PATH;
     }
 
