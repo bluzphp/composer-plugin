@@ -24,7 +24,7 @@ use Composer\Script\ScriptEvents;
 class Plugin implements PluginInterface, EventSubscriberInterface
 {
     /**
-     * @var BluzModuleInstaller
+     * @var Installer
      */
     protected $installer;
 
@@ -32,11 +32,6 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
     const PERMISSION_CODE = 0755;
     const REPEAT = 5;
-    const SKIP_MODELS = [
-        'auth'
-    ];
-
-    protected $app = null;
 
     /**
      * @var PathHelper
@@ -44,20 +39,14 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     protected $pathHelper;
 
     /**
-     * @var \PDO
-     */
-    protected $connection;
-
-    /**
      * Create instance, define constants
      */
     public function __construct()
     {
-        defined('ROOT_PATH') ? : define('ROOT_PATH', realpath($_SERVER['DOCUMENT_ROOT']));
+        defined('PATH_ROOT') ? : define('PATH_ROOT', realpath($_SERVER['DOCUMENT_ROOT']));
         defined('DS') ? : define('DS', DIRECTORY_SEPARATOR);
-        defined('PATH_APPLICATION') ? : define('PATH_APPLICATION', ROOT_PATH . '/application');
-        defined('PATH_DATA') ? : define('PATH_DATA', ROOT_PATH . '/data');
-        defined('PATH_ROOT') ? : define('PATH_ROOT', ROOT_PATH);
+        defined('PATH_APPLICATION') ? : define('PATH_APPLICATION', PATH_ROOT . '/application');
+        defined('PATH_DATA') ? : define('PATH_DATA', PATH_ROOT . '/data');
     }
 
     /**
@@ -125,8 +114,8 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
         if (file_exists(
             $this->getPathHelper()->getModulesPath() . DS .
-            $this->installer->getOption('module_name'))
-        ) {
+            $this->installer->getOption('module_name')
+        )) {
             $this->removeModule();
             $this->removeTests();
             $this->removeAssetsFiles();
@@ -158,7 +147,8 @@ class Plugin implements PluginInterface, EventSubscriberInterface
                     'Do you want remove tables: ' .
                     $this->installer->getOption('required_models') .
                     '[y, n]' .
-                    '</info> ', '?'
+                    '</info>',
+                    '?'
                 );
 
             switch ($answer) {
@@ -166,7 +156,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
                 case 'n':
                     $repeat = false;
                     break;
-                default :
+                default:
                     $repeat--;
             }
 
@@ -362,7 +352,8 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         if (empty($modelNames)) {
             $this->remove(
                 $this->getPathHelper()->getTestModelsPath() . DS .
-                ucfirst(trim($this->getPathHelper()->getModuleName())));
+                ucfirst(trim($this->getPathHelper()->getModuleName()))
+            );
         }
 
         foreach ($modelNames as $name) {
@@ -410,11 +401,10 @@ class Plugin implements PluginInterface, EventSubscriberInterface
             mkdir($dest, self::PERMISSION_CODE);
         }
 
-        foreach (
-            $iterator = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator($source, \RecursiveDirectoryIterator::SKIP_DOTS),
-                \RecursiveIteratorIterator::SELF_FIRST) as $item
-        ) {
+        foreach ($iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($source, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::SELF_FIRST
+        ) as $item) {
             $filePath = $dest . DS . $iterator->getSubPathName();
 
             if (!file_exists($filePath)) {
@@ -437,11 +427,11 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         }
 
         if (is_dir($path)) {
-            foreach(
-                $iterator = new \RecursiveIteratorIterator(
-                    new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS),
-                    \RecursiveIteratorIterator::CHILD_FIRST) as $item) {
-                if ($item->isDir()){
+            foreach ($iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::CHILD_FIRST
+            ) as $item) {
+                if ($item->isDir()) {
                     rmdir($item->getRealPath());
                 } else {
                     unlink($item->getRealPath());

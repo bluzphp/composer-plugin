@@ -16,7 +16,6 @@ use Composer\Installer\LibraryInstaller;
 use Composer\IO\IOInterface;
 use Composer\Package\PackageInterface;
 
-
 class Installer extends LibraryInstaller
 {
     use Options;
