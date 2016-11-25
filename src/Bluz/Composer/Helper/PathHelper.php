@@ -36,6 +36,15 @@ class PathHelper
     }
 
     /**
+     * Get path to the tests directory
+     */
+    public function getTestsPostmanPath(): string
+    {
+        return PATH_ROOT . DS .
+        'tests' . DS . 'postman';
+    }
+
+    /**
      * Get path to the tests module directory
      */
     public function getTestModulesPath(): string
