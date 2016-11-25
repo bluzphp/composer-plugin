@@ -287,7 +287,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
             while ($fileName = readdir($handle)) {
                 $realPath = $testsPath . DS . $fileName;
 
-                if (is_dir($realPath)) {
+                if (file_exists($realPath)) {
                     switch ($fileName) {
                         case 'modules':
                             $this->copy(
@@ -301,6 +301,18 @@ class Plugin implements PluginInterface, EventSubscriberInterface
                                 $this->pathHelper->getTestModelsPath()
                             );
                             break;
+                        case 'collection.json':
+                        case 'environment.json':
+                            if (!file_exists($this->pathHelper->getTestsPostmanPath() . DS .
+                                    $this->pathHelper->getModuleName())) {
+                                mkdir($this->pathHelper->getTestsPostmanPath() . DS .
+                                    $this->pathHelper->getModuleName(), self::PERMISSION_CODE);
+                            }
+                            $this->copy(
+                                $realPath,
+                                $this->pathHelper->getTestsPostmanPath() . DS .
+                                    $this->pathHelper->getModuleName() . DS . $fileName
+                            );
                     }
                 }
             }
@@ -364,6 +376,14 @@ class Plugin implements PluginInterface, EventSubscriberInterface
             $this->getPathHelper()->getTestModulesPath() . DS .
             $this->getPathHelper()->getModuleName()
         );
+
+        if (file_exists(
+            $this->pathHelper->getTestsPostmanPath() . DS . $this->pathHelper->getModuleName()
+        )) {
+            $this->remove(
+                $this->pathHelper->getTestsPostmanPath() . DS . $this->pathHelper->getModuleName()
+            );
+        }
     }
 
     /**
