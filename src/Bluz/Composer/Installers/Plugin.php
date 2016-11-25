@@ -301,17 +301,15 @@ class Plugin implements PluginInterface, EventSubscriberInterface
                                 $this->pathHelper->getTestModelsPath()
                             );
                             break;
-                        case 'collection.json':
-                        case 'environment.json':
+                        case 'postman':
                             if (!file_exists($this->pathHelper->getTestsPostmanPath() . DS .
-                                    $this->pathHelper->getModuleName())) {
+                                $this->pathHelper->getModuleName())) {
                                 mkdir($this->pathHelper->getTestsPostmanPath() . DS .
                                     $this->pathHelper->getModuleName(), self::PERMISSION_CODE);
                             }
                             $this->copy(
                                 $realPath,
-                                $this->pathHelper->getTestsPostmanPath() . DS .
-                                    $this->pathHelper->getModuleName() . DS . $fileName
+                                $this->pathHelper->getTestsPostmanPath()
                             );
                     }
                 }
