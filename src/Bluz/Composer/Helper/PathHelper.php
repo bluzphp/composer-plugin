@@ -13,8 +13,6 @@ namespace Bluz\Composer\Helper;
 
 class PathHelper
 {
-    const DUMP_FILE_NAME = 'dump.sql';
-
     const MODULES_PATH = 'application/modules';
 
     protected $moduleName;
@@ -41,7 +39,7 @@ class PathHelper
     public function getTestsPostmanPath(): string
     {
         return PATH_ROOT . DS .
-        'tests' . DS . 'postman';
+            'tests' . DS . 'postman';
     }
 
     /**
@@ -50,8 +48,8 @@ class PathHelper
     public function getTestModulesPath(): string
     {
         return PATH_ROOT . DS .
-        'tests' . DS .
-        'modules';
+            'tests' . DS .
+            'modules';
     }
 
     /**
@@ -60,8 +58,8 @@ class PathHelper
     public function getTestModelsPath(): string
     {
         return PATH_ROOT . DS .
-        'tests' . DS .
-        'models';
+            'tests' . DS .
+            'models';
     }
 
     /**
@@ -70,8 +68,18 @@ class PathHelper
     public function getModelsPath(): string
     {
         return $this->getModulesPath() . DS .
-        '..' . DS .
-        'models';
+            '..' . DS .
+            'models';
+    }
+
+    /**
+     * Get path to the migrations
+     */
+    public function getMigrationsPath(): string
+    {
+        return PATH_ROOT . DS .
+            'data' . DS .
+            'migrations';
     }
 
     /**
@@ -88,18 +96,9 @@ class PathHelper
     public function getModulesPath(): string
     {
         return PATH_ROOT . DS .
-        self::MODULES_PATH;
+            self::MODULES_PATH;
     }
 
-    /**
-     * Get path to the sql dump
-     */
-    public function getDumpPath(): string
-    {
-        return $this->getModulesPath() . DS .
-        $this->moduleName . DS .
-        self::DUMP_FILE_NAME;
-    }
 
     /**
      * Get path to the module
@@ -131,5 +130,10 @@ class PathHelper
     public function getFontsFilesPath(): string
     {
         return $this->getPublicPath() . DS . 'fonts' . DS . $this->moduleName;
+    }
+
+    public function getPhinxPath(): string
+    {
+        return PATH_ROOT . DS . 'vendor' . DS . 'bin' . DS . 'phinx ';
     }
 }
