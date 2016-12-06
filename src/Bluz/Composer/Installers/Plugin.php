@@ -12,9 +12,6 @@
 namespace Bluz\Composer\Installers;
 
 use Bluz\Composer\Helper\PathHelper;
-use Bluz\Config\Config;
-use Bluz\Proxy\Config as ProxyConfig;
-use Bluz\Proxy\Db;
 use Composer\Composer;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
@@ -28,7 +25,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     protected $installer;
 
-    protected $db;
+    protected $environment;
 
     const PERMISSION_CODE = 0755;
     const REPEAT = 5;
@@ -45,8 +42,6 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     {
         defined('PATH_ROOT') ? : define('PATH_ROOT', realpath($_SERVER['DOCUMENT_ROOT']));
         defined('DS') ? : define('DS', DIRECTORY_SEPARATOR);
-        defined('PATH_APPLICATION') ? : define('PATH_APPLICATION', PATH_ROOT . '/application');
-        defined('PATH_DATA') ? : define('PATH_DATA', PATH_ROOT . '/data');
     }
 
     /**
@@ -96,10 +91,6 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         );
 
         $this->copyFolders();
-
-        if (file_exists($this->getPathHelper()->getDumpPath())) {
-            $this->execSqlScript();
-        }
     }
     /**
      * Hook which is called after removing package
@@ -122,81 +113,30 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
             if ($this->installer->getOption('required_models')) {
                 $this->removeModels();
-                $this->removeTable();
             }
         }
     }
 
-    /**
-     * It removes module tables
-     */
-    protected function removeTable()
+    protected function executeMigrations(string $command, string $version = null)
     {
-        $repeat = self::REPEAT;
-        $answer = null;
+        $this->setEnvironment();
 
-        $this->installer->getIo()->write(
-            '    <info>' .
-            'Removing `bluz-' . $this->installer->getOption('module_name') . '-module` package' .
-            '</info>'
-        );
-        while ($repeat) {
-            $answer = $this->installer->getIo()
-                ->ask(
-                    '    <info>'.
-                    'Do you want remove tables: ' .
-                    $this->installer->getOption('required_models') .
-                    '[y, n]' .
-                    '</info>',
-                    '?'
-                );
+        $migrationCommand = $this->getPathHelper()->getPhinxPath() . $command . '  -e ' . $this->environment;
+        $migrationCommand .= $version ? (' -t ' . $version) : '';
 
-            switch ($answer) {
-                case 'y':
-                case 'n':
-                    $repeat = false;
-                    break;
-                default:
-                    $repeat--;
-            }
-
-        }
-
-        if ($answer === 'y') {
-            $tables = explode(',', $this->installer->getOption('required_models'));
-
-            foreach ($tables as $table) {
-                $this->getDbConnection()->exec('DROP TABLE IF EXISTS ' . $table);
-            }
-        }
+        $this->installer->getIo()->write($migrationCommand);
+        $this->installer->getIo()->write(shell_exec($migrationCommand));
     }
 
     /**
-     * Initializing the bluz config, set environment
-     *
-     * @throws \Exception if initialization failed.
+     *  It set environment
      */
-    protected function initConfig()
+    protected function setEnvironment()
     {
-        $repeat = self::REPEAT;
+        $environment = !empty(getenv('ENV')) ? getenv('ENV') : $this->installer->getIo()
+            ->ask('    <info>Please, enter  your environment[dev, production, testing or another]</info> ', '!');
 
-        while ($repeat) {
-            try {
-                $environment = !empty(getenv('ENV')) ? getenv('ENV') : $this->installer->getIo()
-                    ->ask('    <info>Please, enter  your environment[dev, production, testing or another]</info> ', '!');
-
-                $config = new Config();
-                $config ->setPath(PATH_APPLICATION);
-                $config ->setEnvironment($environment);
-                $config ->init();
-                ProxyConfig::setInstance($config);
-
-                $repeat = false;
-            } catch (\Exception $exception) {
-                $this->installer->getIo()->writeError('<error>' . $exception->getMessage() . '</error>');
-                --$repeat;
-            }
-        }
+        $this->environment = $environment;
     }
 
     /**
@@ -238,38 +178,16 @@ class Plugin implements PluginInterface, EventSubscriberInterface
                                 $this->pathHelper->getModelsPath()
                             );
                             break;
+                        case 'migrations':
+                            $this->copy(
+                                $realPath,
+                                $this->pathHelper->getMigrationsPath()
+                            );
+
+                            $this->executeMigrations('migrate');
+                            break;
                     }
                 }
-            }
-        }
-    }
-
-    /**
-     * Get database connection
-     */
-    public function getDbConnection()
-    {
-        if (empty($this->db)) {
-            $this->initConfig();
-            $this->db = Db::getInstance();
-        }
-
-        return $this->db->handler();
-    }
-
-    /**
-     * It executes sql dump
-     */
-    protected function execSqlScript()
-    {
-        if (!empty($this->getDbConnection())) {
-            $dumpPath = $this->getPathHelper()->getDumpPath();
-
-            if (is_file($dumpPath) && is_readable($dumpPath)) {
-                $sql = file_get_contents($dumpPath);
-
-                $this->getDbConnection()->exec($sql);
-                $this->remove($dumpPath);
             }
         }
     }
