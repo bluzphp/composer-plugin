@@ -121,7 +121,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     {
         $this->setEnvironment();
 
-        $migrationCommand = $this->getPathHelper()->getPhinxPath() . $command . '  -e ' . $this->environment;
+        $migrationCommand = $this->getPathHelper()->getPhinxPath() . $command . '  -e default';
         $migrationCommand .= $version ? (' -t ' . $version) : '';
 
         $this->installer->getIo()->write($migrationCommand);
@@ -133,7 +133,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     protected function setEnvironment()
     {
-        $environment = !empty(getenv('ENV')) ? getenv('ENV') : $this->installer->getIo()
+        $environment = !empty(getenv('BLUZ_ENV')) ? getenv('BLUZ_ENV') : $this->installer->getIo()
             ->ask('    <info>Please, enter  your environment[dev, production, testing or another]</info> ', '!');
 
         $this->environment = $environment;
