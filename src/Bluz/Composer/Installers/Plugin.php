@@ -13,10 +13,9 @@ namespace Bluz\Composer\Installers;
 
 use Composer\Composer;
 use Composer\EventDispatcher\EventSubscriberInterface;
-use Composer\Installer\PackageEvent;
+use Composer\Installer\PackageEvents;
 use Composer\IO\IOInterface;
 use Composer\Plugin\PluginInterface;
-use Composer\Script\ScriptEvents;
 
 class Plugin implements PluginInterface, EventSubscriberInterface
 {
@@ -64,13 +63,13 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     {
         return [
             // copy files to working directory
-            ScriptEvents::POST_PACKAGE_INSTALL => 'onPostPackageInstall',
+            PackageEvents::POST_PACKAGE_INSTALL => 'onPostPackageInstall',
             // removed unchanged files
-            ScriptEvents::PRE_PACKAGE_UPDATE  => 'onPrePackageUpdate',
+            PackageEvents::PRE_PACKAGE_UPDATE  => 'onPrePackageUpdate',
             // copy new files
-            ScriptEvents::POST_PACKAGE_UPDATE  => 'onPostPackageUpdate',
+            PackageEvents::POST_PACKAGE_UPDATE  => 'onPostPackageUpdate',
             // removed all files
-            ScriptEvents::PRE_PACKAGE_UNINSTALL  => 'onPrePackageRemove'
+            PackageEvents::PRE_PACKAGE_UNINSTALL  => 'onPrePackageRemove'
         ];
     }
 
@@ -79,18 +78,8 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      *
      * It copies bluz module
      */
-    public function onPostPackageInstall(PackageEvent $event)
+    public function onPostPackageInstall()
     {
-        $packageName = $event->getOperation()
-            ->getPackage()
-            ->getName();
-
-        $event->getIo()->write(
-            "  - Installing module `$packageName`:",
-            true,
-            IOInterface::VERBOSE
-        );
-
         if (file_exists($this->installer->getOption('vendorPath'))) {
             $this->copy();
         }
@@ -101,7 +90,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      *
      * It checks bluz module
      */
-    public function onPrePackageUpdate(PackageEvent $event)
+    public function onPrePackageUpdate()
     {
         if (file_exists($this->installer->getOption('vendorPath'))) {
             $this->remove();
@@ -113,7 +102,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      *
      * It copies bluz module
      */
-    public function onPostPackageUpdate(PackageEvent $event)
+    public function onPostPackageUpdate()
     {
         if (file_exists($this->installer->getOption('vendorPath'))) {
             $this->copy();
@@ -125,18 +114,8 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      *
      * It removes bluz module
      */
-    public function onPrePackageRemove(PackageEvent $event)
+    public function onPrePackageRemove()
     {
-        $packageName = $event->getOperation()
-            ->getPackage()
-            ->getName();
-
-        $event->getIo()->write(
-            "  - Removing module `$packageName`:",
-            true,
-            IOInterface::VERBOSE
-        );
-
         if (file_exists($this->installer->getOption('vendorPath'))) {
             $this->remove();
         }
