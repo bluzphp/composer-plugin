@@ -9,17 +9,17 @@
          processIsolation="false"
          stopOnFailure="false"
          syntaxCheck="false"
-         bootstrap="tests/bootstrap.php"
+         bootstrap="tests/_bootstrap.php"
         >
     <testsuites>
         <testsuite name="Installers Test Suite">
-            <directory>tests/Bashmach/Composer</directory>
+            <directory>tests/src</directory>
         </testsuite>
     </testsuites>
 
     <filter>
         <whitelist>
-            <directory>src/Bashmach/Composer</directory>
+            <directory>./src</directory>
         </whitelist>
     </filter>
 </phpunit>

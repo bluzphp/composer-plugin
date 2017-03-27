@@ -1,18 +1,35 @@
 <?php
+/**
+ * @copyright Bluz PHP Team
+ * @link https://github.com/bluzphp/framework
+ */
 
-namespace Bluz\Composer\Installers\Test;
+/**
+ * @namespace
+ */
+namespace Bluz\Tests;
 
-use Bluz\Composer\Installers\BluzModuleInstaller;
+use Bluz\Composer\Installers\Installer;
 use Composer\Composer;
 use Composer\Config;
 use Composer\IO\IOInterface;
 
-class BluzModuleInstallerTest extends \PHPUnit_Framework_TestCase
+/**
+ * Bluz TestCase for Composer Plugin
+ *
+ * @package  Bluz\Tests
+ */
+class TestCase extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var IOInterface
+     * @var Composer
      */
     private $composer;
+
+    /**
+     * @var Config
+     */
+    private $config;
 
     /**
      * @var IOInterface
@@ -20,7 +37,7 @@ class BluzModuleInstallerTest extends \PHPUnit_Framework_TestCase
     private $io;
 
     /**
-     * @var BluzModuleInstaller
+     * @var Installer
      */
     private $installer;
 
@@ -32,14 +49,9 @@ class BluzModuleInstallerTest extends \PHPUnit_Framework_TestCase
         $this->composer = new Composer();
         $this->composer->setConfig($this->config);
 
-        $this->installer = new BluzModuleInstaller(
+        $this->installer = new Installer(
             $this->io,
             $this->composer
         );
-    }
-
-    public function testFooBar()
-    {
-        $this->assertTrue(false);
     }
 }
