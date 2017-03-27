@@ -37,6 +37,7 @@ class Installer extends LibraryInstaller
         }
 
         $vendorPath = parent::getInstallPath($package);
+
         $this->setOption('vendorPath', $vendorPath);
 
         return $vendorPath;

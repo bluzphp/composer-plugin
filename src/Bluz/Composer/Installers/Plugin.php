@@ -14,6 +14,7 @@ namespace Bluz\Composer\Installers;
 use Composer\Composer;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
+use Composer\Plugin\CommandEvent;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\ScriptEvents;
 
@@ -88,40 +89,44 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * Hook which is called after install package
      *
      * It copies bluz module
+     * @param CommandEvent $event
      */
-    public function onPostPackageInstall()
+    public function onPostPackageInstall(CommandEvent $event)
     {
-        $this->copy();
+//        $this->copy();
     }
 
     /**
      * Hook which is called before update package
      *
-     * It copies bluz module
+     * It checks bluz module
+     * @param CommandEvent $event
      */
-    public function onPrePackageUpdate()
+    public function onPrePackageUpdate(CommandEvent $event)
     {
-        $this->check();
+//        $this->check();
     }
 
     /**
      * Hook which is called after update package
      *
      * It copies bluz module
+     * @param CommandEvent $event
      */
-    public function onPostPackageUpdate()
+    public function onPostPackageUpdate(CommandEvent $event)
     {
-        $this->copy();
+//        $this->copy();
     }
 
     /**
      * Hook which is called before remove package
      *
-     * It copies bluz module
+     * It removes bluz module
+     * @param CommandEvent $event
      */
-    public function onPrePackageRemove()
+    public function onPrePackageRemove(CommandEvent $event)
     {
-        $this->remove();
+//        $this->remove();
     }
 
     /**
