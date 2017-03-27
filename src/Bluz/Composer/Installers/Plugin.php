@@ -11,7 +11,6 @@
  */
 namespace Bluz\Composer\Installers;
 
-use Bluz\Composer\Helper\PathHelper;
 use Composer\Composer;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
@@ -20,20 +19,18 @@ use Composer\Script\ScriptEvents;
 
 class Plugin implements PluginInterface, EventSubscriberInterface
 {
+    const PERMISSION_CODE = 0755;
+    const REPEAT = 5;
+
     /**
      * @var Installer
      */
     protected $installer;
 
-    protected $environment;
-
-    const PERMISSION_CODE = 0755;
-    const REPEAT = 5;
-
     /**
-     * @var PathHelper
+     * @var string
      */
-    protected $pathHelper;
+    protected $environment;
 
     /**
      * Create instance, define constants
@@ -65,14 +62,22 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         $result = [
+            // copy files to working directory
             ScriptEvents::POST_PACKAGE_INSTALL => [
-                ['onPostPackageInstallOrUpdate', 0]
+                ['onPostPackageInstall', 0]
             ],
+            // check changes
+            ScriptEvents::PRE_PACKAGE_UPDATE  => [
+                ['onPrePackageUpdate', 0]
+            ],
+            // if working files is changed skip this step
+            // else copy files to working directory
             ScriptEvents::POST_PACKAGE_UPDATE  => [
-                ['onPostPackageInstallOrUpdate', 0]
+                ['onPostPackageUpdate', 0]
             ],
-            ScriptEvents::POST_PACKAGE_UNINSTALL  => [
-                ['onPostPackageUninstall', 0]
+            // removed all files
+            ScriptEvents::PRE_PACKAGE_UNINSTALL  => [
+                ['onPrePackageUninstall', 0]
             ]
         ];
 
@@ -80,300 +85,112 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     }
 
     /**
-     * Hook which is called after install or update package
+     * Hook which is called after install package
      *
      * It copies bluz module
      */
-    public function onPostPackageInstallOrUpdate()
+    public function onPostPackageInstall()
     {
-        $this->pathHelper = new PathHelper(
-            $this->installer->getOption('module_name')
-        );
-
-        $this->copyFolders();
+        $this->copy();
     }
+
     /**
-     * Hook which is called after removing package
+     * Hook which is called before update package
      *
-     * It removes bluz module
+     * It copies bluz module
      */
-    public function onPostPackageUninstall()
+    public function onPrePackageUpdate()
     {
-        $this->pathHelper = new PathHelper(
-            $this->installer->getOption('module_name')
-        );
-
-        if (file_exists(
-            $this->getPathHelper()->getModulesPath() . DS .
-            $this->installer->getOption('module_name')
-        )) {
-            $this->removeModule();
-            $this->removeTests();
-            $this->removeAssetsFiles();
-
-            if ($this->installer->getOption('required_models')) {
-                $this->removeModels();
-            }
-        }
-    }
-
-    protected function executeMigrations(string $command, string $version = null)
-    {
-        $this->setEnvironment();
-
-        $migrationCommand = $this->getPathHelper()->getPhinxPath() . $command . '  -e default';
-        $migrationCommand .= $version ? (' -t ' . $version) : '';
-
-        $this->installer->getIo()->write($migrationCommand);
-        $this->installer->getIo()->write(shell_exec($migrationCommand));
+        $this->check();
     }
 
     /**
-     *  It set environment
+     * Hook which is called after update package
+     *
+     * It copies bluz module
      */
-    protected function setEnvironment()
+    public function onPostPackageUpdate()
     {
-        $environment = !empty(getenv('BLUZ_ENV')) ? getenv('BLUZ_ENV') : $this->installer->getIo()
-            ->ask('    <info>Please, enter  your environment[dev, production, testing or another]</info> ', '!');
-
-        $this->environment = $environment;
+        $this->copy();
     }
 
     /**
-     * It copies all folders
+     * Hook which is called before remove package
+     *
+     * It copies bluz module
      */
-    protected function copyFolders()
+    public function onPrePackageRemove()
     {
-        if (file_exists($this->installer->getOption('vendorPath'))) {
-            $this->copyModule();
-            $this->copyAssets();
-            $this->copyTests();
-        }
-    }
-
-    /**
-     * It copies module and models
-     */
-    protected function copyModule()
-    {
-        $srcDir = $this->installer->getOption('vendorPath') . DS . 'src';
-
-        if (file_exists($srcDir)) {
-            $handle = opendir($srcDir);
-
-            while ($fileName = readdir($handle)) {
-                $realPath = $srcDir . DS . $fileName;
-
-                if (is_dir($realPath)) {
-                    switch ($fileName) {
-                        case 'modules':
-                            $this->copy(
-                                $realPath,
-                                $this->pathHelper->getModulesPath()
-                            );
-                            break;
-                        case 'models':
-                            $this->copy(
-                                $realPath,
-                                $this->pathHelper->getModelsPath()
-                            );
-                            break;
-                        case 'migrations':
-                            $this->copy(
-                                $realPath,
-                                $this->pathHelper->getMigrationsPath()
-                            );
-
-                            $this->executeMigrations('migrate');
-                            break;
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Copy tests of module
-     */
-    protected function copyTests()
-    {
-        $testsPath = $this->installer->getOption('vendorPath') . DS . 'tests';
-
-        if (file_exists($testsPath)) {
-            $handle = opendir($testsPath);
-
-            while ($fileName = readdir($handle)) {
-                $realPath = $testsPath . DS . $fileName;
-
-                if (file_exists($realPath)) {
-                    switch ($fileName) {
-                        case 'modules':
-                            $this->copy(
-                                $realPath,
-                                $this->pathHelper->getTestModulesPath()
-                            );
-                            break;
-                        case 'models':
-                            $this->copy(
-                                $realPath,
-                                $this->pathHelper->getTestModelsPath()
-                            );
-                            break;
-                        case 'postman':
-                            if (!file_exists($this->pathHelper->getTestsPostmanPath() . DS .
-                                $this->pathHelper->getModuleName())) {
-                                mkdir($this->pathHelper->getTestsPostmanPath() . DS .
-                                    $this->pathHelper->getModuleName(), self::PERMISSION_CODE);
-                            }
-                            $this->copy(
-                                $realPath,
-                                $this->pathHelper->getTestsPostmanPath()
-                            );
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * It copies assets files of module
-     */
-    protected function copyAssets()
-    {
-        $assetsPath = $this->installer->getOption('vendorPath') . DS . 'assets';
-
-        if (file_exists($assetsPath)) {
-            $handle = opendir($assetsPath);
-
-            while ($fileName = readdir($handle)) {
-                if ($fileName != "." && $fileName != "..") {
-                    $this->copy(
-                        $assetsPath . DS . $fileName,
-                        $this->getPathHelper()->getPublicPath() . DS . $fileName . DS .
-                        $this->getPathHelper()->getModuleName()
-                    );
-                }
-            }
-
-        }
-    }
-
-    /**
-     * It removes models of module
-     */
-    protected function removeModels()
-    {
-        $modelNames = explode(',', $this->installer->getOption('required_models'));
-
-        foreach ($modelNames as $name) {
-            $this->remove($this->getPathHelper()->getModelsPath() . DS . ucfirst(trim($name)));
-        }
-    }
-
-    /**
-     * It removes tests of module
-     */
-    protected function removeTests()
-    {
-        $modelNames = explode(',', $this->installer->getOption('required_models'));
-
-        if (empty($modelNames)) {
-            $this->remove(
-                $this->getPathHelper()->getTestModelsPath() . DS .
-                ucfirst(trim($this->getPathHelper()->getModuleName()))
-            );
-        }
-
-        foreach ($modelNames as $name) {
-            $this->remove($this->getPathHelper()->getTestModelsPath() . DS . ucfirst(trim($name)));
-        }
-
-        $this->remove(
-            $this->getPathHelper()->getTestModulesPath() . DS .
-            $this->getPathHelper()->getModuleName()
-        );
-
-        if (file_exists(
-            $this->pathHelper->getTestsPostmanPath() . DS . $this->pathHelper->getModuleName()
-        )) {
-            $this->remove(
-                $this->pathHelper->getTestsPostmanPath() . DS . $this->pathHelper->getModuleName()
-            );
-        }
-    }
-
-    /**
-     * It removes assets files of module
-     */
-    protected function removeAssetsFiles()
-    {
-        $this->remove($this->getPathHelper()->getJsFilesPath());
-        $this->remove($this->getPathHelper()->getCssFilesPath());
-        $this->remove($this->getPathHelper()->getFontsFilesPath());
-    }
-
-    /**
-     * It removes controllers and views of module
-     */
-    protected function removeModule()
-    {
-        $this->remove($this->getPathHelper()->getModulePath());
-    }
-
-    /**
-     * Get pathHelper object
-     */
-    public function getPathHelper(): PathHelper
-    {
-        return $this->pathHelper;
+        $this->remove();
     }
 
     /**
      * It recursively copies the files and directories
+     * @return bool
      */
-    public function copy(string $source, string $dest)
+    protected function copy()
     {
-        if (!file_exists($dest)) {
-            mkdir($dest, self::PERMISSION_CODE);
-        }
-
         foreach ($iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($source, \RecursiveDirectoryIterator::SKIP_DOTS),
+            new \RecursiveDirectoryIterator(
+                $this->installer->getOption('vendorPath'),
+                \RecursiveDirectoryIterator::SKIP_DOTS
+            ),
             \RecursiveIteratorIterator::SELF_FIRST
         ) as $item) {
-            $filePath = $dest . DS . $iterator->getSubPathName();
+            $filePath = PATH_ROOT . DS . $iterator->getSubPathName();
 
-            if (!file_exists($filePath)) {
+            if (file_exists($filePath)) {
+                $this->installer->getIo()->write("File {$iterator->getSubPathName()} already exists");
+            } else {
                 if ($item->isDir()) {
-                    mkdir($filePath);
+                    mkdir($filePath, self::PERMISSION_CODE);
                 } else {
                     copy($item, $filePath);
                 }
             }
         }
+        return true;
+    }
+
+    /**
+     * It recursively check changes in the files
+     * @return bool
+     */
+    protected function check()
+    {
+        foreach ($iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator(
+                $this->installer->getOption('vendorPath'),
+                \RecursiveDirectoryIterator::SKIP_DOTS
+            ),
+            \RecursiveIteratorIterator::SELF_FIRST
+        ) as $item) {
+            $this->installer->getIo()->write($iterator->getSubPathName());
+            $this->installer->getIo()->write(PATH_ROOT . DS . $iterator->getSubPathName());
+
+        }
+
+        return false;
     }
 
     /**
      * It recursively removes the files and directories
+     * @return bool
      */
-    public function remove(string $path)
+    protected function remove()
     {
-        if (is_file($path)) {
-            return unlink($path);
+        foreach ($iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator(
+                $this->installer->getOption('vendorPath'),
+                \RecursiveDirectoryIterator::SKIP_DOTS
+            ),
+            \RecursiveIteratorIterator::SELF_FIRST
+        ) as $item) {
+            $this->installer->getIo()->write($iterator->getSubPathName());
+            $this->installer->getIo()->write(PATH_ROOT . DS . $iterator->getSubPathName());
+
         }
 
-        if (is_dir($path)) {
-            foreach ($iterator = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS),
-                \RecursiveIteratorIterator::CHILD_FIRST
-            ) as $item) {
-                if ($item->isDir()) {
-                    rmdir($item->getRealPath());
-                } else {
-                    unlink($item->getRealPath());
-                }
-            }
-            rmdir($path);
-        }
+        return false;
     }
 }
