@@ -13,8 +13,8 @@ namespace Bluz\Composer\Installers;
 
 use Composer\Composer;
 use Composer\EventDispatcher\EventSubscriberInterface;
+use Composer\Installer\PackageEvent;
 use Composer\IO\IOInterface;
-use Composer\Plugin\CommandEvent;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\ScriptEvents;
 
@@ -89,44 +89,52 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * Hook which is called after install package
      *
      * It copies bluz module
-     * @param CommandEvent $event
+     * @param PackageEvent $event
      */
-    public function onPostPackageInstall(CommandEvent $event)
+    public function onPostPackageInstall(PackageEvent $event)
     {
-//        $this->copy();
+        if (file_exists($this->installer->getOption('vendorPath'))) {
+            $this->copy();
+        }
     }
 
     /**
      * Hook which is called before update package
      *
      * It checks bluz module
-     * @param CommandEvent $event
+     * @param PackageEvent $event
      */
-    public function onPrePackageUpdate(CommandEvent $event)
+    public function onPrePackageUpdate(PackageEvent $event)
     {
-//        $this->check();
+        if (file_exists($this->installer->getOption('vendorPath'))) {
+            $this->check();
+        }
     }
 
     /**
      * Hook which is called after update package
      *
      * It copies bluz module
-     * @param CommandEvent $event
+     * @param PackageEvent $event
      */
-    public function onPostPackageUpdate(CommandEvent $event)
+    public function onPostPackageUpdate(PackageEvent $event)
     {
-//        $this->copy();
+        if (file_exists($this->installer->getOption('vendorPath'))) {
+            $this->copy();
+        }
     }
 
     /**
      * Hook which is called before remove package
      *
      * It removes bluz module
-     * @param CommandEvent $event
+     * @param PackageEvent $event
      */
-    public function onPrePackageRemove(CommandEvent $event)
+    public function onPrePackageRemove(PackageEvent $event)
     {
-//        $this->remove();
+        if (file_exists($this->installer->getOption('vendorPath'))) {
+            $this->remove();
+        }
     }
 
     /**
