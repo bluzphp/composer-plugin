@@ -62,37 +62,35 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     public static function getSubscribedEvents(): array
     {
-        $result = [
+        return [
             // copy files to working directory
-            ScriptEvents::POST_PACKAGE_INSTALL => [
-                ['onPostPackageInstall', 0]
-            ],
-            // check changes
-            ScriptEvents::PRE_PACKAGE_UPDATE  => [
-                ['onPrePackageUpdate', 0]
-            ],
-            // if working files is changed skip this step
-            // else copy files to working directory
-            ScriptEvents::POST_PACKAGE_UPDATE  => [
-                ['onPostPackageUpdate', 0]
-            ],
+            ScriptEvents::POST_PACKAGE_INSTALL => 'onPostPackageInstall',
+            // removed unchanged files
+            ScriptEvents::PRE_PACKAGE_UPDATE  => 'onPrePackageUpdate',
+            // copy new files
+            ScriptEvents::POST_PACKAGE_UPDATE  => 'onPostPackageUpdate',
             // removed all files
-            ScriptEvents::PRE_PACKAGE_UNINSTALL  => [
-                ['onPrePackageUninstall', 0]
-            ]
+            ScriptEvents::PRE_PACKAGE_UNINSTALL  => 'onPrePackageRemove'
         ];
-
-        return $result;
     }
 
     /**
      * Hook which is called after install package
      *
      * It copies bluz module
-     * @param PackageEvent $event
      */
     public function onPostPackageInstall(PackageEvent $event)
     {
+        $packageName = $event->getOperation()
+            ->getPackage()
+            ->getName();
+
+        $event->getIo()->write(
+            "  - Installing module `$packageName`:",
+            true,
+            IOInterface::VERBOSE
+        );
+
         if (file_exists($this->installer->getOption('vendorPath'))) {
             $this->copy();
         }
@@ -102,12 +100,11 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * Hook which is called before update package
      *
      * It checks bluz module
-     * @param PackageEvent $event
      */
     public function onPrePackageUpdate(PackageEvent $event)
     {
         if (file_exists($this->installer->getOption('vendorPath'))) {
-            $this->check();
+            $this->remove();
         }
     }
 
@@ -115,7 +112,6 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * Hook which is called after update package
      *
      * It copies bluz module
-     * @param PackageEvent $event
      */
     public function onPostPackageUpdate(PackageEvent $event)
     {
@@ -128,10 +124,19 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * Hook which is called before remove package
      *
      * It removes bluz module
-     * @param PackageEvent $event
      */
     public function onPrePackageRemove(PackageEvent $event)
     {
+        $packageName = $event->getOperation()
+            ->getPackage()
+            ->getName();
+
+        $event->getIo()->write(
+            "  - Removing module `$packageName`:",
+            true,
+            IOInterface::VERBOSE
+        );
+
         if (file_exists($this->installer->getOption('vendorPath'))) {
             $this->remove();
         }
@@ -143,47 +148,68 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     protected function copy()
     {
-        foreach ($iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator(
-                $this->installer->getOption('vendorPath'),
-                \RecursiveDirectoryIterator::SKIP_DOTS
-            ),
-            \RecursiveIteratorIterator::SELF_FIRST
-        ) as $item) {
-            $filePath = PATH_ROOT . DS . $iterator->getSubPathName();
-
-            if (file_exists($filePath)) {
-                $this->installer->getIo()->write("File {$iterator->getSubPathName()} already exists");
-            } else {
-                if ($item->isDir()) {
-                    mkdir($filePath, self::PERMISSION_CODE);
-                } else {
-                    copy($item, $filePath);
-                }
-            }
-        }
-        return true;
+        $this->copyRecursive('application');
+        $this->copyRecursive('data');
+        $this->copyRecursive('public');
+        $this->copyRecursive('tests');
     }
 
     /**
-     * It recursively check changes in the files
+     * It recursively copies the files and directories
+     * @param $directory
      * @return bool
      */
-    protected function check()
+    protected function copyRecursive($directory)
     {
+        $sourcePath = $this->installer->getOption('vendorPath') . DS . $directory;
+
+        if (!is_dir($sourcePath)) {
+            return false;
+        }
+
         foreach ($iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator(
-                $this->installer->getOption('vendorPath'),
+                $sourcePath,
                 \RecursiveDirectoryIterator::SKIP_DOTS
             ),
             \RecursiveIteratorIterator::SELF_FIRST
         ) as $item) {
-            $this->installer->getIo()->write($iterator->getSubPathName());
-            $this->installer->getIo()->write(PATH_ROOT . DS . $iterator->getSubPathName());
+            $filePath = PATH_ROOT . DS . $directory . DS . $iterator->getSubPathName();
 
+            if ($item->isDir()) {
+                if (is_dir($filePath)) {
+                    $this->installer->getIo()->write(
+                        "    - <comment>Directory `{$iterator->getSubPathName()}` already exists</comment>",
+                        true,
+                        IOInterface::VERBOSE
+                    );
+                } else {
+                    mkdir($filePath, self::PERMISSION_CODE);
+                    $this->installer->getIo()->write(
+                        "    - Created directory `{$iterator->getSubPathName()}`",
+                        true,
+                        IOInterface::VERBOSE
+                    );
+                }
+            } else {
+                if (file_exists($filePath)) {
+                    $this->installer->getIo()->write(
+                        "    - <comment>File `{$iterator->getSubPathName()}` already exists</comment>",
+                        true,
+                        IOInterface::VERBOSE
+                    );
+                } else {
+                    copy($item, $filePath);
+                    $this->installer->getIo()->write(
+                        "    - Copied file `{$iterator->getSubPathName()}`",
+                        true,
+                        IOInterface::VERBOSE
+                    );
+                }
+            }
         }
 
-        return false;
+        return true;
     }
 
     /**
@@ -192,16 +218,74 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     protected function remove()
     {
+        $this->removeRecursive('application');
+        $this->removeRecursive('data');
+        $this->removeRecursive('public');
+        $this->removeRecursive('tests');
+    }
+
+    /**
+     * It recursively removes the files and directories
+     * @param $directory
+     * @return bool
+     */
+    protected function removeRecursive($directory)
+    {
+        $sourcePath = $this->installer->getOption('vendorPath') . DS . $directory;
+
+        if (!is_dir($sourcePath)) {
+            return false;
+        }
         foreach ($iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator(
-                $this->installer->getOption('vendorPath'),
+                $sourcePath,
                 \RecursiveDirectoryIterator::SKIP_DOTS
             ),
-            \RecursiveIteratorIterator::SELF_FIRST
+            \RecursiveIteratorIterator::CHILD_FIRST
         ) as $item) {
-            $this->installer->getIo()->write($iterator->getSubPathName());
-            $this->installer->getIo()->write(PATH_ROOT . DS . $iterator->getSubPathName());
+            // path to copied file
+            $current = PATH_ROOT . DS . $directory . DS . $iterator->getSubPathName();
 
+            // remove empty directories
+            if (is_dir($current)) {
+                if (sizeof(scandir($current)) == 2) {
+                    rmdir($current);
+                    $this->installer->getIo()->write(
+                        "    - Removed directory `{$iterator->getSubPathName()}`",
+                        true,
+                        IOInterface::VERBOSE
+                    );
+                } else {
+                    $this->installer->getIo()->write(
+                        "    - <comment>Skip directory `{$iterator->getSubPathName()}`</comment>",
+                        true,
+                        IOInterface::VERBOSE
+                    );
+                }
+                continue;
+            }
+
+            // skip already removed files
+            if (!is_file($current)) {
+                continue;
+            }
+
+            if (md5_file($item) == md5_file($current)) {
+                // remove file
+                unlink($current);
+                $this->installer->getIo()->write(
+                    "    - Removed file `{$iterator->getSubPathName()}`",
+                    true,
+                    IOInterface::VERBOSE
+                );
+            } else {
+                // or skip changed files
+                $this->installer->getIo()->write(
+                    "    - <comment>File `{$iterator->getSubPathName()}` has changed</comment>",
+                    true,
+                    IOInterface::VERBOSE
+                );
+            }
         }
 
         return false;
