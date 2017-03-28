@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
 <phpunit backupGlobals="false"
          backupStaticAttributes="false"
          colors="true"
@@ -13,13 +11,15 @@
         >
     <testsuites>
         <testsuite name="Installers Test Suite">
-            <directory>tests/src</directory>
+            <directory>./tests/src</directory>
         </testsuite>
     </testsuites>
-
     <filter>
         <whitelist>
-            <directory>./src</directory>
+            <directory suffix=".php">./src</directory>
         </whitelist>
+        <blacklist>
+            <directory suffix=".php">./vendor</directory>
+        </blacklist>
     </filter>
 </phpunit>
