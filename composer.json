@@ -12,6 +12,7 @@
     "require-dev": {
         "composer/composer": "~1.0",
         "composer/installers": "~1.0",
+        "squizlabs/php_codesniffer": "~2.3",
         "phpunit/phpunit": "~5.7"
     },
     "autoload": {
