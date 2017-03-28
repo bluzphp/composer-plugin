@@ -5,7 +5,7 @@ php:
 install:
   # Composer
   - composer self-update
-  - composer install -n --prefer-source
+  - composer install
 script:
   # Code style
   - php vendor/bin/phpcs ./src --standard=PSR1,PSR2 --encoding=utf-8
