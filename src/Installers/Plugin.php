@@ -65,11 +65,11 @@ class Plugin implements PluginInterface, EventSubscriberInterface
             // copy files to working directory
             PackageEvents::POST_PACKAGE_INSTALL => 'onPostPackageInstall',
             // removed unchanged files
-            PackageEvents::PRE_PACKAGE_UPDATE  => 'onPrePackageUpdate',
+            PackageEvents::PRE_PACKAGE_UPDATE => 'onPrePackageUpdate',
             // copy new files
-            PackageEvents::POST_PACKAGE_UPDATE  => 'onPostPackageUpdate',
+            PackageEvents::POST_PACKAGE_UPDATE => 'onPostPackageUpdate',
             // removed all files
-            PackageEvents::PRE_PACKAGE_UNINSTALL  => 'onPrePackageRemove'
+            PackageEvents::PRE_PACKAGE_UNINSTALL => 'onPrePackageRemove'
         ];
     }
 
@@ -80,7 +80,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     public function onPostPackageInstall()
     {
-        if (file_exists($this->installer->getOption('vendorPath'))) {
+        if (file_exists($this->installer->getVendorPath())) {
             $this->copy();
         }
     }
@@ -92,7 +92,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     public function onPrePackageUpdate()
     {
-        if (file_exists($this->installer->getOption('vendorPath'))) {
+        if (file_exists($this->installer->getVendorPath())) {
             $this->remove();
         }
     }
@@ -104,7 +104,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     public function onPostPackageUpdate()
     {
-        if (file_exists($this->installer->getOption('vendorPath'))) {
+        if (file_exists($this->installer->getVendorPath())) {
             $this->copy();
         }
     }
@@ -116,7 +116,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     public function onPrePackageRemove()
     {
-        if (file_exists($this->installer->getOption('vendorPath'))) {
+        if (file_exists($this->installer->getVendorPath())) {
             $this->remove();
         }
     }
@@ -140,7 +140,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     protected function copyRecursive($directory)
     {
-        $sourcePath = $this->installer->getOption('vendorPath') . DS . $directory;
+        $sourcePath = $this->installer->getVendorPath() . DS . $directory;
 
         if (!is_dir($sourcePath)) {
             return false;
@@ -192,7 +192,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     }
 
     /**
-     * It recursively removes the files and directories
+     * It recursively removes the files and empty directories
      * @return bool
      */
     protected function remove()
@@ -210,7 +210,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     protected function removeRecursive($directory)
     {
-        $sourcePath = $this->installer->getOption('vendorPath') . DS . $directory;
+        $sourcePath = $this->installer->getVendorPath() . DS . $directory;
 
         if (!is_dir($sourcePath)) {
             return false;

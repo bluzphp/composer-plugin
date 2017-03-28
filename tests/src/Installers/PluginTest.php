@@ -9,16 +9,17 @@
  */
 namespace Bluz\Tests\Composer\Installers;
 
+use Bluz\Composer\Installers\Plugin;
 use Bluz\Tests\TestCase;
 
 /**
  * Class Plugin
  * @package Bluz\Tests\TestCase
  */
-class Plugin extends TestCase
+class PluginTest extends TestCase
 {
-    public function testFooBar()
+    public function testSubscribedEventIsPresent()
     {
-        $this->assertTrue(true);
+        $this->assertCount(4, Plugin::getSubscribedEvents());
     }
 }

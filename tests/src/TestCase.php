@@ -43,15 +43,28 @@ class TestCase extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $this->io = $this->getMock('Composer\IO\NullIO');
+        $this->io = $this->createMock('Composer\IO\NullIO');
         $this->config = new Config();
 
         $this->composer = new Composer();
         $this->composer->setConfig($this->config);
 
-        $this->installer = new Installer(
-            $this->io,
-            $this->composer
-        );
+        $this->getInstaller();
+    }
+
+    /**
+     * getInstaller
+     *
+     * @return Installer
+     */
+    public function getInstaller()
+    {
+        if (!$this->installer) {
+            $this->installer = new Installer(
+                $this->io,
+                $this->composer
+            );
+        }
+        return $this->installer;
     }
 }

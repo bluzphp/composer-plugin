@@ -11,14 +11,13 @@
  */
 namespace Bluz\Composer\Installers;
 
-use Bluz\Common\Options;
 use Composer\Installer\LibraryInstaller;
 use Composer\IO\IOInterface;
 use Composer\Package\PackageInterface;
 
 class Installer extends LibraryInstaller
 {
-    use Options;
+    protected $vendorPath;
 
     /**
      * Get path to the installation package
@@ -27,20 +26,8 @@ class Installer extends LibraryInstaller
      */
     public function getInstallPath(PackageInterface $package): string
     {
-        $extra     = $package->getExtra();
-        $rootExtra = $this->composer->getPackage()->getExtra();
-
-        $this->setOptions(array_merge($rootExtra, $extra['bluz']));
-
-        if (empty($this->getOption('module_name'))) {
-            throw new \Exception('module_name is not defined');
-        }
-
-        $vendorPath = parent::getInstallPath($package);
-
-        $this->setOption('vendorPath', $vendorPath);
-
-        return $vendorPath;
+        $this->vendorPath = parent::getInstallPath($package);
+        return $this->vendorPath;
     }
 
     /**
@@ -59,5 +46,13 @@ class Installer extends LibraryInstaller
     public function getIo(): IOInterface
     {
         return $this->io;
+    }
+
+    /**
+     * Get path to current vendor
+     */
+    public function getVendorPath()
+    {
+        return $this->vendorPath;
     }
 }
