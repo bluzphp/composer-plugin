@@ -13,14 +13,29 @@ namespace Bluz\Composer\Installers;
 
 use Composer\Composer;
 use Composer\EventDispatcher\EventSubscriberInterface;
+use Composer\Installer\PackageEvent;
 use Composer\Installer\PackageEvents;
 use Composer\IO\IOInterface;
 use Composer\Plugin\PluginInterface;
+use Symfony\Component\Filesystem\Exception\IOException;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Finder\Finder;
 
+/**
+ * Class Plugin
+ *
+ * @package Bluz\Composer\Installers
+ */
 class Plugin implements PluginInterface, EventSubscriberInterface
 {
     const PERMISSION_CODE = 0755;
     const REPEAT = 5;
+    CONST DIRECTORIES = [
+        'application',
+        'data',
+        'public',
+        'tests'
+    ];
 
     /**
      * @var Installer
@@ -31,6 +46,11 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * @var string
      */
     protected $environment;
+
+    /**
+     * @var Filesystem
+     */
+    protected $filesystem;
 
     /**
      * Create instance, define constants
@@ -63,13 +83,13 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     {
         return [
             // copy files to working directory
-            PackageEvents::POST_PACKAGE_INSTALL => 'onPostPackageInstall',
+            PackageEvents::POST_PACKAGE_INSTALL => 'copyFiles',
             // removed unchanged files
-            PackageEvents::PRE_PACKAGE_UPDATE => 'onPrePackageUpdate',
+            PackageEvents::PRE_PACKAGE_UPDATE => 'removeFiles',
             // copy new files
-            PackageEvents::POST_PACKAGE_UPDATE => 'onPostPackageUpdate',
+            PackageEvents::POST_PACKAGE_UPDATE => 'copyFiles',
             // removed all files
-            PackageEvents::PRE_PACKAGE_UNINSTALL => 'onPrePackageRemove'
+            PackageEvents::PRE_PACKAGE_UNINSTALL => 'removeFiles',
         ];
     }
 
@@ -77,11 +97,18 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * Hook which is called after install package
      *
      * It copies bluz module
+     *
+     * @throws \InvalidArgumentException
      */
-    public function onPostPackageInstall()
+    public function copyFiles(PackageEvent $event)
     {
         if (file_exists($this->installer->getVendorPath())) {
-            $this->copy();
+            $this->copyModule();
+        }
+
+        $extras = $event->getComposer()->getPackage()->getExtra();
+        if (array_key_exists('copy-files', $extras)) {
+            $this->copyExtras($extras['copy-files']);
         }
     }
 
@@ -90,130 +117,201 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      *
      * It checks bluz module
      */
-    public function onPrePackageUpdate()
+    public function removeFiles(PackageEvent $event)
     {
         if (file_exists($this->installer->getVendorPath())) {
-            $this->remove();
+            $this->removeModule();
+        }
+
+        $extras = $event->getComposer()->getPackage()->getExtra();
+        if (array_key_exists('copy-files', $extras)) {
+            $this->removeExtras($extras['copy-files']);
         }
     }
 
     /**
-     * Hook which is called after update package
-     *
-     * It copies bluz module
+     * Get Filesystem
+     * 
+     * @return Filesystem
      */
-    public function onPostPackageUpdate()
+    protected function getFilesystem()
     {
-        if (file_exists($this->installer->getVendorPath())) {
-            $this->copy();
+        if (!$this->filesystem) {
+            $this->filesystem = new Filesystem();
         }
+        return $this->filesystem;
     }
 
     /**
-     * Hook which is called before remove package
+     * getExtra
      *
-     * It removes bluz module
+     * @return array
      */
-    public function onPrePackageRemove()
+    protected function getExtraFiles() : array
     {
-        if (file_exists($this->installer->getVendorPath())) {
-            $this->remove();
+        $moduleJson = json_decode(file_get_contents($this->installer->getVendorPath() .DS. 'composer.json'), true);
+
+        if (isset($moduleJson, $moduleJson['extra'], $moduleJson['extra']['copy-files'])) {
+            return $moduleJson['extra']['copy-files'];
+        }
+        return [];
+    }
+
+    /**
+     * Copy Module files
+     *
+     * @return void
+     * @throws \InvalidArgumentException
+     */
+    protected function copyModule()
+    {
+        $this->copyExtras($this->getExtraFiles());
+
+        foreach (self::DIRECTORIES as $directory) {
+            $this->copy(
+                $this->installer->getVendorPath() .DS. $directory . DS,
+                PATH_ROOT . DS . $directory . DS
+            );
+        }
+
+        $this->installer->getIo()->write(
+            sprintf('  - Copied <comment>%s</comment> module to application', basename($this->installer->getVendorPath())),
+            true
+        );
+    }
+
+    /**
+     * copyExtras
+     *
+     * @param  array $files
+     *
+     * @return void
+     * @throws \InvalidArgumentException
+     */
+    protected function copyExtras($files)
+    {
+        foreach ($files as $source => $target) {
+            $this->copy(
+                dirname($this->installer->getVendorPath(), 2) .DS. $source,
+                PATH_ROOT . DS . $target
+            );
         }
     }
 
     /**
      * It recursively copies the files and directories
-     * @return bool
+     *
+     * @param $source
+     * @param $target
+     *
+     * @return void
+     * @throws \InvalidArgumentException
      */
-    protected function copy()
+    protected function copy($source, $target)
     {
-        $this->copyRecursive('application');
-        $this->copyRecursive('data');
-        $this->copyRecursive('public');
-        $this->copyRecursive('tests');
-    }
-
-    /**
-     * It recursively copies the files and directories
-     * @param $directory
-     * @return bool
-     */
-    protected function copyRecursive($directory)
-    {
-        $sourcePath = $this->installer->getVendorPath() . DS . $directory;
-
-        if (!is_dir($sourcePath)) {
-            return false;
+        // skip, if not exists
+        if (!file_exists($source)) {
+            return;
         }
 
-        foreach ($iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator(
-                $sourcePath,
-                \RecursiveDirectoryIterator::SKIP_DOTS
-            ),
-            \RecursiveIteratorIterator::SELF_FIRST
-        ) as $item) {
-            $filePath = PATH_ROOT . DS . $directory . DS . $iterator->getSubPathName();
+        // Check the renaming of file for direct moving (file-to-file)
+        $isRenameFile = substr($target, -1) !== '/' && !is_dir($source);
 
-            if ($item->isDir()) {
-                if (is_dir($filePath)) {
-                    $this->installer->getIo()->write(
-                        "    - <comment>Directory `{$iterator->getSubPathName()}` already exists</comment>",
-                        true,
-                        IOInterface::VERBOSE
-                    );
-                } else {
-                    mkdir($filePath, self::PERMISSION_CODE);
-                    $this->installer->getIo()->write(
-                        "    - Created directory `{$iterator->getSubPathName()}`",
-                        true,
-                        IOInterface::VERBOSE
-                    );
-                }
+        if (file_exists($target) && !is_dir($target) && !$isRenameFile) {
+            throw new \InvalidArgumentException('Destination directory is not a directory');
+        }
+
+        try {
+            if ($isRenameFile) {
+                $this->getFilesystem()->mkdir(dirname($target));
             } else {
-                if (file_exists($filePath)) {
-                    $this->installer->getIo()->write(
-                        "    - <comment>File `{$iterator->getSubPathName()}` already exists</comment>",
-                        true,
-                        IOInterface::VERBOSE
-                    );
-                } else {
-                    copy($item, $filePath);
-                    $this->installer->getIo()->write(
-                        "    - Copied file `{$iterator->getSubPathName()}`",
-                        true,
-                        IOInterface::VERBOSE
+                $this->getFilesystem()->mkdir($target);
+            }
+        } catch (IOException $e) {
+            throw new \InvalidArgumentException(
+                sprintf('Could not create directory `%s`', $target)
+            );
+        }
+
+        if (false === file_exists($source)) {
+            throw new \InvalidArgumentException(
+                sprintf('Source directory or file `%s` does not exist', $source)
+            );
+        }
+
+        if (is_dir($source)) {
+            $finder = new Finder;
+            $finder->files()->in($source);
+
+            foreach ($finder as $file) {
+                try {
+                    $this->getFilesystem()->copy($file, $target .DS. $file->getRelativePathname());
+                } catch (IOException $e) {
+                    throw new \InvalidArgumentException(
+                        sprintf('Could not copy `%s`', $file->getBaseName())
                     );
                 }
             }
+        } else {
+            try {
+                if ($isRenameFile) {
+                    $this->getFilesystem()->copy($source, $target);
+                } else {
+                    $this->getFilesystem()->copy($source, $target.'/'.basename($source));
+                }
+            } catch (IOException $e) {
+                throw new \InvalidArgumentException(sprintf('Could not copy `%s`', $source));
+            }
         }
 
-        return true;
+        $this->installer->getIo()->write(
+            sprintf('  - Copied file(s) from <comment>%s</comment> to <comment>%s</comment>', $source, $target),
+            true,
+            IOInterface::VERBOSE
+        );
     }
 
     /**
      * It recursively removes the files and empty directories
-     * @return bool
+     * @return void
      */
-    protected function remove()
+    protected function removeModule()
     {
-        $this->removeRecursive('application');
-        $this->removeRecursive('data');
-        $this->removeRecursive('public');
-        $this->removeRecursive('tests');
+        $this->removeExtras($this->getExtraFiles());
+
+        foreach (self::DIRECTORIES as $directory) {
+            $this->remove($directory);
+        }
+
+        $this->installer->getIo()->write(
+            sprintf('  - Removed <comment>%s</comment> module from application', basename($this->installer->getVendorPath())),
+            true
+        );
+    }
+
+    /**
+     * removeExtras
+     *
+     * @return void
+     */
+    protected function removeExtras($files)
+    {
+        foreach ($files as $source => $target) {
+            $this->remove(PATH_ROOT . DS . $target);
+        }
     }
 
     /**
      * It recursively removes the files and directories
      * @param $directory
-     * @return bool
+     * @return void
      */
-    protected function removeRecursive($directory)
+    protected function remove($directory)
     {
         $sourcePath = $this->installer->getVendorPath() . DS . $directory;
 
         if (!is_dir($sourcePath)) {
-            return false;
+            return;
         }
         foreach ($iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator(
@@ -227,16 +325,16 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
             // remove empty directories
             if (is_dir($current)) {
-                if (sizeof(scandir($current)) == 2) {
+                if (count(scandir($current, SCANDIR_SORT_ASCENDING )) === 2) {
                     rmdir($current);
                     $this->installer->getIo()->write(
-                        "    - Removed directory `{$iterator->getSubPathName()}`",
+                        "  - Removed directory `{$iterator->getSubPathName()}`",
                         true,
                         IOInterface::VERBOSE
                     );
                 } else {
                     $this->installer->getIo()->write(
-                        "    - <comment>Skip directory `{$iterator->getSubPathName()}`</comment>",
+                        "  - <comment>Skip directory `{$iterator->getSubPathName()}`</comment>",
                         true,
                         IOInterface::VERBOSE
                     );
@@ -249,24 +347,22 @@ class Plugin implements PluginInterface, EventSubscriberInterface
                 continue;
             }
 
-            if (md5_file($item) == md5_file($current)) {
+            if (md5_file($item) === md5_file($current)) {
                 // remove file
                 unlink($current);
                 $this->installer->getIo()->write(
-                    "    - Removed file `{$iterator->getSubPathName()}`",
+                    "  - Removed file `{$iterator->getSubPathName()}`",
                     true,
                     IOInterface::VERBOSE
                 );
             } else {
                 // or skip changed files
                 $this->installer->getIo()->write(
-                    "    - <comment>File `{$iterator->getSubPathName()}` has changed</comment>",
+                    "  - <comment>File `{$iterator->getSubPathName()}` has changed</comment>",
                     true,
                     IOInterface::VERBOSE
                 );
             }
         }
-
-        return false;
     }
 }

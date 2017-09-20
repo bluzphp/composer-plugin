@@ -19,16 +19,16 @@ class InstallerTest extends TestCase
 {
     public function testSupportedType()
     {
-        $this->assertTrue($this->getInstaller()->supports('bluz-module'));
+        self::assertTrue($this->getInstaller()->supports('bluz-module'));
     }
 
     public function testUnSupportedType()
     {
-        $this->assertFalse($this->getInstaller()->supports('not-bluz-module'));
+        self::assertFalse($this->getInstaller()->supports('not-bluz-module'));
     }
 
     public function testInstallerGetIO()
     {
-        $this->assertInstanceOf('Composer\\IO\\IOInterface', $this->getInstaller()->getIo());
+        self::assertInstanceOf('Composer\\IO\\IOInterface', $this->getInstaller()->getIo());
     }
 }
