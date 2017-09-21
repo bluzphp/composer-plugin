@@ -36,29 +36,26 @@ Usage
 ### Install module
 To install the module run the command:
   
+```bash
+php ./vendor/bin/bluzman module:install options
+```
 
-    $ composer require bluzphp/module-options
+You can enter the environment
 
-Then you must enter the environment
-
-
-    Please, enter  your environment[dev, production, testing or another] dev
-
-
-
-If you use no-interaction mode, you must set an environment variable
-  
-
-    $ BLUZ_ENV=dev composer require bluzphp/module-options -n
-
+```bash
+php ./vendor/bin/bluzman module:install options --env production
+```
 
 ### Remove module
 To remove the module, run the command:
     
+```bash
+php ./vendor/bin/bluzman module:remove options
+```
 
-    $ composer remove bluzphp/module-options
+## License
 
+The project is developed by [NIX Solutions][1] PHP team and distributed under [MIT LICENSE][2]
 
-
-
-    
+[1]: http://nixsolutions.com
+[2]: https://raw.github.com/bluzphp/composer-plugin/master/LICENSE.md

@@ -20,6 +20,6 @@ class PluginTest extends TestCase
 {
     public function testSubscribedEventIsPresent()
     {
-        $this->assertCount(4, Plugin::getSubscribedEvents());
+        self::assertCount(4, Plugin::getSubscribedEvents());
     }
 }
