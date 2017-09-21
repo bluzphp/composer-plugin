@@ -83,44 +83,16 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            // copy files to working directory
-            PackageEvents::POST_PACKAGE_INSTALL => 'copyFiles',
-            // copy new files
-            PackageEvents::POST_PACKAGE_UPDATE => 'copyFiles',
-            // removed unchanged files
-            PackageEvents::PRE_PACKAGE_UPDATE => 'removeFiles',
-            // removed all files
-            PackageEvents::PRE_PACKAGE_UNINSTALL => 'removeFiles',
             // copy extra files from root composer.json
-            ScriptEvents::POST_UPDATE_CMD => 'copyExtraFiles',
-            // remove extra files from root composer.json
-            // ScriptEvents::PRE_UPDATE_CMD => 'removeExtraFiles'
+            // do it only once after create project
+            ScriptEvents::POST_ROOT_PACKAGE_INSTALL => 'copyProjectExtraFiles',
+            // copy module's files to working directory
+            PackageEvents::POST_PACKAGE_INSTALL => 'copyModuleFiles',
+            PackageEvents::POST_PACKAGE_UPDATE => 'copyModuleFiles',
+            // removed unchanged module's files
+            PackageEvents::PRE_PACKAGE_UPDATE => 'removeModuleFiles',
+            PackageEvents::PRE_PACKAGE_UNINSTALL => 'removeModuleFiles',
         ];
-    }
-
-
-    /**
-     * Hook which is called after install package
-     * It copies bluz module
-     *
-     * @throws \InvalidArgumentException
-     */
-    public function copyFiles()
-    {
-        if (file_exists($this->installer->getVendorPath())) {
-            $this->copyModule();
-        }
-    }
-
-    /**
-     * Hook which is called before update package
-     * It checks bluz module
-     */
-    public function removeFiles()
-    {
-        if (file_exists($this->installer->getVendorPath())) {
-            $this->removeModule();
-        }
     }
 
     /**
@@ -131,7 +103,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * @return void
      * @throws \InvalidArgumentException
      */
-    public function copyExtraFiles(Event $event)
+    public function copyProjectExtraFiles(Event $event)
     {
         $extras = $event->getComposer()->getPackage()->getExtra();
         if (array_key_exists('copy-files', $extras)) {
@@ -144,17 +116,26 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     }
 
     /**
-     * Remove extra files from compose.json of project
+     * Hook which is called after install package
+     * It copies bluz module
      *
-     * @param Event $event
-     *
-     * @return void
+     * @throws \InvalidArgumentException
      */
-    public function removeExtraFiles(Event $event)
+    public function copyModuleFiles()
     {
-        $extras = $event->getComposer()->getPackage()->getExtra();
-        if (array_key_exists('copy-files', $extras)) {
-            $this->removeExtras($extras['copy-files']);
+        if (file_exists($this->installer->getVendorPath())) {
+            $this->copyModule();
+        }
+    }
+
+    /**
+     * Hook which is called before update package
+     * It checks bluz module
+     */
+    public function removeModuleFiles()
+    {
+        if (file_exists($this->installer->getVendorPath())) {
+            $this->removeModule();
         }
     }
 
