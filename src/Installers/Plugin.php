@@ -30,7 +30,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 {
     const PERMISSION_CODE = 0755;
     const REPEAT = 5;
-    CONST DIRECTORIES = [
+    const DIRECTORIES = [
         'application',
         'data',
         'public',
@@ -108,6 +108,11 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
         $extras = $event->getComposer()->getPackage()->getExtra();
         if (array_key_exists('copy-files', $extras)) {
+
+            $this->installer->getIo()->write(
+                sprintf('  - Copied additional file(s)'),
+                true
+            );
             $this->copyExtras($extras['copy-files']);
         }
     }
@@ -175,7 +180,10 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         }
 
         $this->installer->getIo()->write(
-            sprintf('  - Copied <comment>%s</comment> module to application', basename($this->installer->getVendorPath())),
+            sprintf(
+                '  - Copied <comment>%s</comment> module to application',
+                basename($this->installer->getVendorPath())
+            ),
             true
         );
     }
@@ -211,6 +219,15 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     {
         // skip, if not exists
         if (!file_exists($source)) {
+            return;
+        }
+        // skip, if target exists
+        if (is_file($target)) {
+            $this->installer->getIo()->write(
+                sprintf('  - File <comment>%s</comment> already exists', $target),
+                true,
+                IOInterface::VERBOSE
+            );
             return;
         }
 
@@ -284,7 +301,10 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         }
 
         $this->installer->getIo()->write(
-            sprintf('  - Removed <comment>%s</comment> module from application', basename($this->installer->getVendorPath())),
+            sprintf(
+                '  - Removed <comment>%s</comment> module from application',
+                basename($this->installer->getVendorPath())
+            ),
             true
         );
     }
@@ -292,12 +312,17 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     /**
      * removeExtras
      *
+     * @param  array $files
+     *
      * @return void
      */
     protected function removeExtras($files)
     {
         foreach ($files as $source => $target) {
-            $this->remove(PATH_ROOT . DS . $target);
+            $this->installer->getIo()->write(
+                sprintf('  - Skipped additional file(s) <comment>%s</comment>', $target),
+                true
+            );
         }
     }
 
@@ -334,7 +359,10 @@ class Plugin implements PluginInterface, EventSubscriberInterface
                     );
                 } else {
                     $this->installer->getIo()->write(
-                        "  - <comment>Skip directory `{$iterator->getSubPathName()}`</comment>",
+                        sprintf(
+                            '  - <comment>Skipped directory `%s`</comment>',
+                            $directory . DS . $iterator->getSubPathName()
+                        ),
                         true,
                         IOInterface::VERBOSE
                     );
