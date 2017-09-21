@@ -57,8 +57,8 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     public function __construct()
     {
-        defined('PATH_ROOT') ? : define('PATH_ROOT', realpath($_SERVER['DOCUMENT_ROOT']));
-        defined('DS') ? : define('DS', DIRECTORY_SEPARATOR);
+        defined('PATH_ROOT') ?: define('PATH_ROOT', realpath($_SERVER['DOCUMENT_ROOT']));
+        defined('DS') ?: define('DS', DIRECTORY_SEPARATOR);
     }
 
     /**
@@ -154,7 +154,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     protected function getExtraFiles() : array
     {
-        $moduleJson = json_decode(file_get_contents($this->installer->getVendorPath() .DS. 'composer.json'), true);
+        $moduleJson = json_decode(file_get_contents($this->installer->getVendorPath() . DS . 'composer.json'), true);
 
         if (isset($moduleJson, $moduleJson['extra'], $moduleJson['extra']['copy-files'])) {
             return $moduleJson['extra']['copy-files'];
@@ -174,7 +174,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
         foreach (self::DIRECTORIES as $directory) {
             $this->copy(
-                $this->installer->getVendorPath() .DS. $directory . DS,
+                $this->installer->getVendorPath() . DS . $directory . DS,
                 PATH_ROOT . DS . $directory . DS
             );
         }
@@ -200,7 +200,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     {
         foreach ($files as $source => $target) {
             $this->copy(
-                dirname($this->installer->getVendorPath(), 2) .DS. $source,
+                dirname($this->installer->getVendorPath(), 2) . DS . $source,
                 PATH_ROOT . DS . $target
             );
         }
@@ -262,7 +262,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
             foreach ($finder as $file) {
                 try {
-                    $this->getFilesystem()->copy($file, $target .DS. $file->getRelativePathname());
+                    $this->getFilesystem()->copy($file, $target . DS . $file->getRelativePathname());
                 } catch (IOException $e) {
                     throw new \InvalidArgumentException(
                         sprintf('Could not copy `%s`', $file->getBaseName())
@@ -274,7 +274,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
                 if ($isRenameFile) {
                     $this->getFilesystem()->copy($source, $target);
                 } else {
-                    $this->getFilesystem()->copy($source, $target.'/'.basename($source));
+                    $this->getFilesystem()->copy($source, $target . '/' . basename($source));
                 }
             } catch (IOException $e) {
                 throw new \InvalidArgumentException(sprintf('Could not copy `%s`', $source));
@@ -350,7 +350,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
             // remove empty directories
             if (is_dir($current)) {
-                if (count(scandir($current, SCANDIR_SORT_ASCENDING )) === 2) {
+                if (count(scandir($current, SCANDIR_SORT_ASCENDING)) === 2) {
                     rmdir($current);
                     $this->installer->getIo()->write(
                         "  - Removed directory `{$iterator->getSubPathName()}`",
