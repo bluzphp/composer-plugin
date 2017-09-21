@@ -13,10 +13,11 @@ namespace Bluz\Composer\Installers;
 
 use Composer\Composer;
 use Composer\EventDispatcher\EventSubscriberInterface;
-use Composer\Installer\PackageEvent;
 use Composer\Installer\PackageEvents;
 use Composer\IO\IOInterface;
 use Composer\Plugin\PluginInterface;
+use Composer\Script\Event;
+use Composer\Script\ScriptEvents;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
@@ -84,28 +85,52 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         return [
             // copy files to working directory
             PackageEvents::POST_PACKAGE_INSTALL => 'copyFiles',
-            // removed unchanged files
-            PackageEvents::PRE_PACKAGE_UPDATE => 'removeFiles',
             // copy new files
             PackageEvents::POST_PACKAGE_UPDATE => 'copyFiles',
+            // removed unchanged files
+            PackageEvents::PRE_PACKAGE_UPDATE => 'removeFiles',
             // removed all files
             PackageEvents::PRE_PACKAGE_UNINSTALL => 'removeFiles',
+            // copy extra files from root composer.json
+            ScriptEvents::POST_UPDATE_CMD => 'copyExtraFiles',
+            // remove extra files from root composer.json
+            ScriptEvents::PRE_UPDATE_CMD => 'removeExtraFiles'
         ];
     }
 
+
     /**
      * Hook which is called after install package
-     *
      * It copies bluz module
-     *
-     * @throws \InvalidArgumentException
      */
-    public function copyFiles(PackageEvent $event)
+    public function copyFiles()
     {
         if (file_exists($this->installer->getVendorPath())) {
             $this->copyModule();
         }
+    }
 
+    /**
+     * Hook which is called before update package
+     * It checks bluz module
+     */
+    public function removeFiles()
+    {
+        if (file_exists($this->installer->getVendorPath())) {
+            $this->removeModule();
+        }
+
+    }
+
+    /**
+     * Copy extra files from compose.json of project
+     *
+     * @param Event $event
+     *
+     * @return void
+     */
+    public function copyExtraFiles(Event $event)
+    {
         $extras = $event->getComposer()->getPackage()->getExtra();
         if (array_key_exists('copy-files', $extras)) {
             $this->installer->getIo()->write(
@@ -117,16 +142,14 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     }
 
     /**
-     * Hook which is called before update package
+     * Remove extra files from compose.json of project
      *
-     * It checks bluz module
+     * @param Event $event
+     *
+     * @return void
      */
-    public function removeFiles(PackageEvent $event)
+    public function removeExtraFiles(Event $event)
     {
-        if (file_exists($this->installer->getVendorPath())) {
-            $this->removeModule();
-        }
-
         $extras = $event->getComposer()->getPackage()->getExtra();
         if (array_key_exists('copy-files', $extras)) {
             $this->removeExtras($extras['copy-files']);
