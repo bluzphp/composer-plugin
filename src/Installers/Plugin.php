@@ -94,7 +94,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
             // copy extra files from root composer.json
             ScriptEvents::POST_UPDATE_CMD => 'copyExtraFiles',
             // remove extra files from root composer.json
-            ScriptEvents::PRE_UPDATE_CMD => 'removeExtraFiles'
+            // ScriptEvents::PRE_UPDATE_CMD => 'removeExtraFiles'
         ];
     }
 
@@ -102,6 +102,8 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     /**
      * Hook which is called after install package
      * It copies bluz module
+     *
+     * @throws \InvalidArgumentException
      */
     public function copyFiles()
     {
@@ -119,7 +121,6 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         if (file_exists($this->installer->getVendorPath())) {
             $this->removeModule();
         }
-
     }
 
     /**
@@ -128,6 +129,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * @param Event $event
      *
      * @return void
+     * @throws \InvalidArgumentException
      */
     public function copyExtraFiles(Event $event)
     {
