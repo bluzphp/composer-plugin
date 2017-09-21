@@ -108,7 +108,6 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
         $extras = $event->getComposer()->getPackage()->getExtra();
         if (array_key_exists('copy-files', $extras)) {
-
             $this->installer->getIo()->write(
                 sprintf('  - Copied additional file(s)'),
                 true
@@ -136,7 +135,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
     /**
      * Get Filesystem
-     * 
+     *
      * @return Filesystem
      */
     protected function getFilesystem()
