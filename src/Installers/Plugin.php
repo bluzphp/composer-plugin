@@ -46,6 +46,11 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     /**
      * @var string
      */
+    protected $vendorPath;
+
+    /**
+     * @var string
+     */
     protected $environment;
 
     /**
@@ -72,6 +77,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     public function activate(Composer $composer, IOInterface $io)
     {
         $this->installer = new Installer($io, $composer);
+        $this->vendorPath = $composer->getConfig()->get('vendor-dir');
         $composer->getInstallationManager()->addInstaller($this->installer);
     }
 
@@ -205,7 +211,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     {
         foreach ($files as $source => $target) {
             $this->copy(
-                dirname($this->installer->getVendorPath(), 2) . DS . $source,
+                $this->vendorPath . DS . $source,
                 PATH_ROOT . DS . $target
             );
         }
