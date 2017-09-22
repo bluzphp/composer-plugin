@@ -85,7 +85,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         return [
             // copy extra files from root composer.json
             // do it only once after create project
-            ScriptEvents::POST_ROOT_PACKAGE_INSTALL => 'copyProjectExtraFiles',
+            ScriptEvents::POST_CREATE_PROJECT_CMD => 'copyProjectExtraFiles',
             // copy module's files to working directory
             PackageEvents::POST_PACKAGE_INSTALL => 'copyModuleFiles',
             PackageEvents::POST_PACKAGE_UPDATE => 'copyModuleFiles',
