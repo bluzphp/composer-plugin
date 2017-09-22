@@ -227,7 +227,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
             return;
         }
         // skip, if target exists
-        if (is_file($target)) {
+        if (is_file($target) && !is_dir($target)) {
             $this->installer->getIo()->write(
                 sprintf('  - File <comment>%s</comment> already exists', $target),
                 true,
