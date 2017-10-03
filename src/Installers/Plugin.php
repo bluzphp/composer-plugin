@@ -125,11 +125,14 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * Hook which is called after install package
      * It copies bluz module
      *
+     * @param Event $event
+     *
      * @throws \InvalidArgumentException
      */
-    public function copyModuleFiles()
+    public function copyModuleFiles(Event $event)
     {
-        if (file_exists($this->installer->getVendorPath())) {
+        if (file_exists($this->installer->getVendorPath())
+            && $event->getComposer()->getPackage()->getType() === 'bluz-module') {
             $this->copyModule();
         }
     }
@@ -137,10 +140,13 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     /**
      * Hook which is called before update package
      * It checks bluz module
+     *
+     * @param Event $event
      */
-    public function removeModuleFiles()
+    public function removeModuleFiles(Event $event)
     {
-        if (file_exists($this->installer->getVendorPath())) {
+        if (file_exists($this->installer->getVendorPath())
+            && $event->getComposer()->getPackage()->getType() === 'bluz-module') {
             $this->removeModule();
         }
     }
