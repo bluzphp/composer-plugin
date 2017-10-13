@@ -13,6 +13,7 @@ namespace Bluz\Composer\Installers;
 
 use Composer\Composer;
 use Composer\EventDispatcher\EventSubscriberInterface;
+use Composer\Installer\PackageEvent;
 use Composer\Installer\PackageEvents;
 use Composer\IO\IOInterface;
 use Composer\Plugin\PluginInterface;
@@ -125,11 +126,11 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * Hook which is called after install package
      * It copies bluz module
      *
-     * @param Event $event
+     * @param PackageEvent $event
      *
      * @throws \InvalidArgumentException
      */
-    public function copyModuleFiles(Event $event)
+    public function copyModuleFiles(PackageEvent $event)
     {
         if (file_exists($this->installer->getVendorPath())
             && $event->getComposer()->getPackage()->getType() === 'bluz-module') {
@@ -141,9 +142,9 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * Hook which is called before update package
      * It checks bluz module
      *
-     * @param Event $event
+     * @param PackageEvent $event
      */
-    public function removeModuleFiles(Event $event)
+    public function removeModuleFiles(PackageEvent $event)
     {
         if (file_exists($this->installer->getVendorPath())
             && $event->getComposer()->getPackage()->getType() === 'bluz-module') {
