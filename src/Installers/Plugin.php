@@ -227,8 +227,8 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     /**
      * It recursively copies the files and directories
      *
-     * @param $source
-     * @param $target
+     * @param string $source
+     * @param string $target
      *
      * @return void
      * @throws \InvalidArgumentException
