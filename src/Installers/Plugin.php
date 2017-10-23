@@ -133,7 +133,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     public function copyModuleFiles(PackageEvent $event)
     {
         if (file_exists($this->installer->getVendorPath())
-            && $event->getComposer()->getPackage()->getType() === 'bluz-module') {
+            && $event->getOperation()->getPackage()->getType() === 'bluz-module') {
             $this->copyModule();
         }
     }
@@ -147,7 +147,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     public function removeModuleFiles(PackageEvent $event)
     {
         if (file_exists($this->installer->getVendorPath())
-            && $event->getComposer()->getPackage()->getType() === 'bluz-module') {
+            && $event->getOperation()->getPackage()->getType() === 'bluz-module') {
             $this->removeModule();
         }
     }
