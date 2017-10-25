@@ -12,10 +12,12 @@
 namespace Bluz\Composer\Installers;
 
 use Composer\Composer;
+use Composer\DependencyResolver\Operation\UpdateOperation;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\Installer\PackageEvent;
 use Composer\Installer\PackageEvents;
 use Composer\IO\IOInterface;
+use Composer\Package\PackageInterface;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
@@ -48,6 +50,11 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * @var string
      */
     protected $vendorPath;
+
+    /**
+     * @var string
+     */
+    protected $packagePath;
 
     /**
      * @var string
@@ -103,6 +110,21 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     }
 
     /**
+     * extractPackage
+     *
+     * @param PackageEvent $event
+     *
+     * @return PackageInterface
+     */
+    protected function extractPackage(PackageEvent $event)
+    {
+        if ($event->getOperation() instanceof UpdateOperation) {
+            return $event->getOperation()->getTargetPackage();
+        }
+        return $event->getOperation()->getPackage();
+    }
+
+    /**
      * Copy extra files from compose.json of project
      *
      * @param Event $event
@@ -132,8 +154,12 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     public function copyModuleFiles(PackageEvent $event)
     {
-        if (file_exists($this->installer->getVendorPath())
-            && $event->getOperation()->getPackage()->getType() === 'bluz-module') {
+        $package = $this->extractPackage($event);
+        $this->packagePath = $this->vendorPath .DS. $package->getName();
+        if ($package->getType() === 'bluz-module' && file_exists($this->packagePath)) {
+            if ($package->getExtra() && isset($package->getExtra()['copy-files'])) {
+                $this->copyExtras($package->getExtra()['copy-files']);
+            }
             $this->copyModule();
         }
     }
@@ -146,8 +172,12 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     public function removeModuleFiles(PackageEvent $event)
     {
-        if (file_exists($this->installer->getVendorPath())
-            && $event->getOperation()->getPackage()->getType() === 'bluz-module') {
+        $package = $this->extractPackage($event);
+        $this->packagePath = $this->vendorPath .DS. $package->getName();
+        if ($package->getType() === 'bluz-module' && file_exists($this->packagePath)) {
+            if ($package->getExtra() && isset($package->getExtra()['copy-files'])) {
+                $this->removeExtras($package->getExtra()['copy-files']);
+            }
             $this->removeModule();
         }
     }
@@ -166,21 +196,6 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     }
 
     /**
-     * getExtra
-     *
-     * @return array
-     */
-    protected function getExtraFiles() : array
-    {
-        $moduleJson = json_decode(file_get_contents($this->installer->getVendorPath() . DS . 'composer.json'), true);
-
-        if (isset($moduleJson, $moduleJson['extra'], $moduleJson['extra']['copy-files'])) {
-            return $moduleJson['extra']['copy-files'];
-        }
-        return [];
-    }
-
-    /**
      * Copy Module files
      *
      * @return void
@@ -188,11 +203,9 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     protected function copyModule()
     {
-        $this->copyExtras($this->getExtraFiles());
-
         foreach (self::DIRECTORIES as $directory) {
             $this->copy(
-                $this->installer->getVendorPath() . DS . $directory . DS,
+                $this->packagePath . DS . $directory . DS,
                 PATH_ROOT . DS . $directory . DS
             );
         }
@@ -200,7 +213,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         $this->installer->getIo()->write(
             sprintf(
                 '  - Copied <comment>%s</comment> module to application',
-                basename($this->installer->getVendorPath())
+                basename($this->packagePath)
             ),
             true
         );
@@ -227,8 +240,8 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     /**
      * It recursively copies the files and directories
      *
-     * @param $source
-     * @param $target
+     * @param string $source
+     * @param string $target
      *
      * @return void
      * @throws \InvalidArgumentException
@@ -312,8 +325,6 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     protected function removeModule()
     {
-        $this->removeExtras($this->getExtraFiles());
-
         foreach (self::DIRECTORIES as $directory) {
             $this->remove($directory);
         }
@@ -321,7 +332,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         $this->installer->getIo()->write(
             sprintf(
                 '  - Removed <comment>%s</comment> module from application',
-                basename($this->installer->getVendorPath())
+                basename($this->packagePath)
             ),
             true
         );
@@ -351,7 +362,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     protected function remove($directory)
     {
-        $sourcePath = $this->installer->getVendorPath() . DS . $directory;
+        $sourcePath = $this->packagePath . DS . $directory;
 
         if (!is_dir($sourcePath)) {
             return;
