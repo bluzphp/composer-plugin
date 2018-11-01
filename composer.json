@@ -6,7 +6,7 @@
     "homepage": "https://github.com/bluzphp/composer-plugin",
     "license": "MIT",
     "require": {
-        "php": ">=7.0",
+        "php": ">=7.1",
         "composer-plugin-api": "~1.0",
         "symfony/filesystem": "~3.0",
         "symfony/finder": "~3.0"
