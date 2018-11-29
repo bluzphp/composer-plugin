@@ -71,8 +71,8 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     public function __construct()
     {
-        defined('PATH_ROOT') ?: define('PATH_ROOT', realpath($_SERVER['DOCUMENT_ROOT']));
-        defined('DS') ?: define('DS', DIRECTORY_SEPARATOR);
+        \defined('PATH_ROOT') ?: \define('PATH_ROOT', realpath($_SERVER['DOCUMENT_ROOT']));
+        \defined('DS') ?: \define('DS', DIRECTORY_SEPARATOR);
     }
 
     /**
@@ -271,7 +271,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
         try {
             if ($isRenameFile) {
-                $this->getFilesystem()->mkdir(dirname($target));
+                $this->getFilesystem()->mkdir(\dirname($target));
             } else {
                 $this->getFilesystem()->mkdir($target);
             }
@@ -379,7 +379,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
             // remove empty directories
             if (is_dir($current)) {
-                if (count(scandir($current, SCANDIR_SORT_ASCENDING)) === 2) {
+                if (\count(scandir($current, SCANDIR_SORT_ASCENDING)) === 2) {
                     rmdir($current);
                     $this->installer->getIo()->write(
                         "  - Removed directory `{$iterator->getSubPathName()}`",
