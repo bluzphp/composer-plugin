@@ -32,9 +32,9 @@ use Symfony\Component\Finder\Finder;
  */
 class Plugin implements PluginInterface, EventSubscriberInterface
 {
-    const PERMISSION_CODE = 0755;
-    const REPEAT = 5;
-    const DIRECTORIES = [
+    public const PERMISSION_CODE = 0755;
+    public const REPEAT = 5;
+    public const DIRECTORIES = [
         'application',
         'data',
         'public',
@@ -82,7 +82,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      *
      * {@inheritDoc}
      */
-    public function activate(Composer $composer, IOInterface $io)
+    public function activate(Composer $composer, IOInterface $io): void
     {
         $this->installer = new Installer($io, $composer);
         $this->vendorPath = $composer->getConfig()->get('vendor-dir');
@@ -116,7 +116,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      *
      * @return PackageInterface
      */
-    protected function extractPackage(PackageEvent $event)
+    protected function extractPackage(PackageEvent $event): PackageInterface
     {
         if ($event->getOperation() instanceof UpdateOperation) {
             return $event->getOperation()->getTargetPackage();
@@ -132,7 +132,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * @return void
      * @throws \InvalidArgumentException
      */
-    public function copyProjectExtraFiles(Event $event)
+    public function copyProjectExtraFiles(Event $event): void
     {
         $extras = $event->getComposer()->getPackage()->getExtra();
         if (array_key_exists('copy-files', $extras)) {
@@ -152,7 +152,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      *
      * @throws \InvalidArgumentException
      */
-    public function copyModuleFiles(PackageEvent $event)
+    public function copyModuleFiles(PackageEvent $event): void
     {
         $package = $this->extractPackage($event);
         $this->packagePath = $this->vendorPath .DS. $package->getName();
@@ -170,7 +170,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      *
      * @param PackageEvent $event
      */
-    public function removeModuleFiles(PackageEvent $event)
+    public function removeModuleFiles(PackageEvent $event): void
     {
         $package = $this->extractPackage($event);
         $this->packagePath = $this->vendorPath .DS. $package->getName();
@@ -187,7 +187,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      *
      * @return Filesystem
      */
-    protected function getFilesystem()
+    protected function getFilesystem(): Filesystem
     {
         if (!$this->filesystem) {
             $this->filesystem = new Filesystem();
@@ -201,7 +201,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * @return void
      * @throws \InvalidArgumentException
      */
-    protected function copyModule()
+    protected function copyModule(): void
     {
         foreach (self::DIRECTORIES as $directory) {
             $this->copy(
@@ -227,7 +227,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * @return void
      * @throws \InvalidArgumentException
      */
-    protected function copyExtras($files)
+    protected function copyExtras($files): void
     {
         foreach ($files as $source => $target) {
             $this->copy(
@@ -246,7 +246,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * @return void
      * @throws \InvalidArgumentException
      */
-    protected function copy($source, $target)
+    protected function copy($source, $target): void
     {
         // skip, if not exists
         if (!file_exists($source)) {
@@ -323,7 +323,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * It recursively removes the files and empty directories
      * @return void
      */
-    protected function removeModule()
+    protected function removeModule(): void
     {
         foreach (self::DIRECTORIES as $directory) {
             $this->remove($directory);
@@ -345,7 +345,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      *
      * @return void
      */
-    protected function removeExtras($files)
+    protected function removeExtras($files): void
     {
         foreach ($files as $source => $target) {
             $this->installer->getIo()->write(
@@ -360,7 +360,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * @param $directory
      * @return void
      */
-    protected function remove($directory)
+    protected function remove($directory): void
     {
         $sourcePath = $this->packagePath . DS . $directory;
 
