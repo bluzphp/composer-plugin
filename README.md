@@ -1,16 +1,21 @@
 # Composer Installer for Bluz
 
-[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/bluzphp/main)
-
 ### Achievements
 
-[![Build Status](https://travis-ci.org/bluzphp/composer-plugin.svg?branch=master)](https://travis-ci.org/bluzphp/composer-plugin)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/bluzphp/composer-plugin/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/bluzphp/composer-plugin/?branch=master)
+[![PHP >= 7.1+](https://img.shields.io/packagist/php-v/bluzphp/composer-plugin.svg?style=flat)](https://php.net/)
 
-[![Latest Stable Version](https://poser.pugx.org/bluzphp/composer-plugin/v/stable)](https://packagist.org/packages/bluzphp/composer-plugin)
-[![Total Downloads](https://poser.pugx.org/bluzphp/composer-plugin/downloads)](https://packagist.org/packages/bluzphp/composer-plugin)
+[![Latest Stable Version](https://img.shields.io/packagist/v/bluzphp/composer-plugin.svg?label=version&style=flat)](https://packagist.org/packages/bluzphp/composer-plugin)
 
-[![License](https://poser.pugx.org/bluzphp/composer-plugin/license)](https://packagist.org/packages/bluzphp/composer-plugin)
+[![Build Status](https://img.shields.io/travis/bluzphp/composer-plugin/master.svg?style=flat)](https://travis-ci.org/bluzphp/composer-plugin)
+
+[![Scrutinizer Code Quality](https://img.shields.io/scrutinizer/g/bluzphp/composer-plugin.svg?style=flat)](https://scrutinizer-ci.com/g/bluzphp/composer-plugin/)
+
+[![Coverage Status](https://img.shields.io/coveralls/bluzphp/composer-plugin/master.svg?style=flat)](https://coveralls.io/r/bluzphp/composer-plugin?branch=master)
+
+[![Total Downloads](https://img.shields.io/packagist/dt/bluzphp/composer-plugin.svg?style=flat)](https://packagist.org/packages/bluzphp/composer-plugin)
+
+[![License](https://img.shields.io/packagist/l/bluzphp/composer-plugin.svg?style=flat)](https://packagist.org/packages/bluzphp/composer-plugin)
+
 
 Features
 -------------------------
