@@ -14,14 +14,13 @@
 
 [![License](https://img.shields.io/packagist/l/bluzphp/composer-plugin.svg?style=flat)](https://packagist.org/packages/bluzphp/composer-plugin)
 
-
 Features
 -------------------------
 * The modules installer for bluz skeleton
 
 Requirements
 -------------------------
-* PHP: 7 (or later)
+* PHP: 7.1 (or later)
 
 Available modules
 -------------------------
