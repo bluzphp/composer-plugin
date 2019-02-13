@@ -10,8 +10,6 @@
 
 [![Scrutinizer Code Quality](https://img.shields.io/scrutinizer/g/bluzphp/composer-plugin.svg?style=flat)](https://scrutinizer-ci.com/g/bluzphp/composer-plugin/)
 
-[![Coverage Status](https://img.shields.io/coveralls/bluzphp/composer-plugin/master.svg?style=flat)](https://coveralls.io/r/bluzphp/composer-plugin?branch=master)
-
 [![Total Downloads](https://img.shields.io/packagist/dt/bluzphp/composer-plugin.svg?style=flat)](https://packagist.org/packages/bluzphp/composer-plugin)
 
 [![License](https://img.shields.io/packagist/l/bluzphp/composer-plugin.svg?style=flat)](https://packagist.org/packages/bluzphp/composer-plugin)
@@ -27,14 +25,18 @@ Requirements
 
 Available modules
 -------------------------
-* [bluzphp/module-options](https://github.com/bluzphp/module-options)
-* [bluzphp/module-categories](https://github.com/bluzphp/module-categories)
-* [bluzphp/module-media](https://github.com/bluzphp/module-media)
 * [bluzphp/module-auth-google](https://github.com/bluzphp/module-auth-google)
 * [bluzphp/module-auth-twitter](https://github.com/bluzphp/module-auth-twitter)
 * [bluzphp/module-auth-facebook](https://github.com/bluzphp/module-auth-facebook)
-* [bluzphp/module-test](https://github.com/bluzphp/module-test)
+* [bluzphp/module-categories](https://github.com/bluzphp/module-categories)
 * [bluzphp/module-contact-us](https://github.com/bluzphp/module-contact-us)
+* [bluzphp/module-media](https://github.com/bluzphp/module-media)
+* [bluzphp/module-options](https://github.com/bluzphp/module-options)
+* [bluzphp/module-phones](https://github.com/bluzphp/module-phones) — under development
+* [bluzphp/module-profile](https://github.com/bluzphp/module-profile)
+* [bluzphp/module-push](https://github.com/bluzphp/module-push) — under development
+* [bluzphp/module-test](https://github.com/bluzphp/module-test)
+* [bluzphp/module-wallet](https://github.com/bluzphp/module-wallet) — under development
 
 Usage
 -------------------------
