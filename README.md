@@ -1,6 +1,5 @@
 # Composer Installer for Bluz
-
-### Achievements
+## Achievements
 
 [![PHP >= 7.1+](https://img.shields.io/packagist/php-v/bluzphp/composer-plugin.svg?style=flat)](https://php.net/)
 
@@ -14,16 +13,16 @@
 
 [![License](https://img.shields.io/packagist/l/bluzphp/composer-plugin.svg?style=flat)](https://packagist.org/packages/bluzphp/composer-plugin)
 
-Features
--------------------------
+## Features
+
 * The modules installer for bluz skeleton
 
-Requirements
--------------------------
+## Requirements
+
 * PHP: 7.1 (or later)
 
-Available modules
--------------------------
+## Available modules
+
 * [bluzphp/module-auth-google](https://github.com/bluzphp/module-auth-google)
 * [bluzphp/module-auth-twitter](https://github.com/bluzphp/module-auth-twitter)
 * [bluzphp/module-auth-facebook](https://github.com/bluzphp/module-auth-facebook)
@@ -37,8 +36,7 @@ Available modules
 * [bluzphp/module-test](https://github.com/bluzphp/module-test)
 * [bluzphp/module-wallet](https://github.com/bluzphp/module-wallet) — under development
 
-Usage
--------------------------
+## Usage
 ### Install module
 To install the module run the command:
   
