@@ -155,7 +155,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     public function copyModuleFiles(PackageEvent $event): void
     {
         $package = $this->extractPackage($event);
-        $this->packagePath = $this->vendorPath .DS. $package->getName();
+        $this->packagePath = $this->vendorPath . DS . $package->getName();
         if ($package->getType() === 'bluz-module' && file_exists($this->packagePath)) {
             if ($package->getExtra() && isset($package->getExtra()['copy-files'])) {
                 $this->copyExtras($package->getExtra()['copy-files']);
@@ -173,7 +173,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     public function removeModuleFiles(PackageEvent $event): void
     {
         $package = $this->extractPackage($event);
-        $this->packagePath = $this->vendorPath .DS. $package->getName();
+        $this->packagePath = $this->vendorPath . DS . $package->getName();
         if ($package->getType() === 'bluz-module' && file_exists($this->packagePath)) {
             if ($package->getExtra() && isset($package->getExtra()['copy-files'])) {
                 $this->removeExtras($package->getExtra()['copy-files']);
