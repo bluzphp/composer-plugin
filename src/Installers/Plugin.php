@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Bluz composer plugin
  *
@@ -155,7 +156,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     public function copyModuleFiles(PackageEvent $event): void
     {
         $package = $this->extractPackage($event);
-        $this->packagePath = $this->vendorPath .DS. $package->getName();
+        $this->packagePath = $this->vendorPath . DS . $package->getName();
         if ($package->getType() === 'bluz-module' && file_exists($this->packagePath)) {
             if ($package->getExtra() && isset($package->getExtra()['copy-files'])) {
                 $this->copyExtras($package->getExtra()['copy-files']);
@@ -173,7 +174,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     public function removeModuleFiles(PackageEvent $event): void
     {
         $package = $this->extractPackage($event);
-        $this->packagePath = $this->vendorPath .DS. $package->getName();
+        $this->packagePath = $this->vendorPath . DS . $package->getName();
         if ($package->getType() === 'bluz-module' && file_exists($this->packagePath)) {
             if ($package->getExtra() && isset($package->getExtra()['copy-files'])) {
                 $this->removeExtras($package->getExtra()['copy-files']);
@@ -222,12 +223,12 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     /**
      * copyExtras
      *
-     * @param  array $files
+     * @param array $files
      *
      * @return void
      * @throws \InvalidArgumentException
      */
-    protected function copyExtras($files): void
+    protected function copyExtras(array $files): void
     {
         foreach ($files as $source => $target) {
             $this->copy(
@@ -246,7 +247,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * @return void
      * @throws \InvalidArgumentException
      */
-    protected function copy($source, $target): void
+    protected function copy(string $source, string $target): void
     {
         // skip, if not exists
         if (!file_exists($source)) {
@@ -288,7 +289,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         }
 
         if (is_dir($source)) {
-            $finder = new Finder;
+            $finder = new Finder();
             $finder->files()->in($source);
 
             foreach ($finder as $file) {
@@ -341,11 +342,11 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     /**
      * removeExtras
      *
-     * @param  array $files
+     * @param array $files
      *
      * @return void
      */
-    protected function removeExtras($files): void
+    protected function removeExtras(array $files): void
     {
         foreach ($files as $source => $target) {
             $this->installer->getIo()->write(
@@ -367,13 +368,15 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         if (!is_dir($sourcePath)) {
             return;
         }
-        foreach ($iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator(
-                $sourcePath,
-                \RecursiveDirectoryIterator::SKIP_DOTS
-            ),
-            \RecursiveIteratorIterator::CHILD_FIRST
-        ) as $item) {
+        foreach (
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator(
+                    $sourcePath,
+                    \RecursiveDirectoryIterator::SKIP_DOTS
+                ),
+                \RecursiveIteratorIterator::CHILD_FIRST
+            ) as $item
+        ) {
             // path to copied file
             $current = PATH_ROOT . DS . $directory . DS . $iterator->getSubPathName();
 
@@ -421,5 +424,15 @@ class Plugin implements PluginInterface, EventSubscriberInterface
                 );
             }
         }
+    }
+
+    public function deactivate(Composer $composer, IOInterface $io)
+    {
+        // TODO: Implement deactivate() method.
+    }
+
+    public function uninstall(Composer $composer, IOInterface $io)
+    {
+        // TODO: Implement uninstall() method.
     }
 }

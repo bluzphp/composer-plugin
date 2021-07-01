@@ -1,4 +1,5 @@
 <?php
+
 // This is global bootstrap for autoloading
 // Environment
 define('DEBUG', true);
@@ -12,4 +13,4 @@ define('PATH_VENDOR', PATH_ROOT . '/vendor');
 
 // init autoloader
 $loader = require PATH_ROOT . '/vendor/autoload.php';
-$loader->addPsr4('Bluz\\Tests\\', __DIR__ .'/src');
+$loader->addPsr4('Bluz\\Tests\\', __DIR__ . '/src');

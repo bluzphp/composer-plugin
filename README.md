@@ -1,7 +1,7 @@
 # Composer Installer for Bluz
 ## Achievements
 
-[![PHP >= 7.1+](https://img.shields.io/packagist/php-v/bluzphp/composer-plugin.svg?style=flat)](https://php.net/)
+[![PHP >= 7.3+](https://img.shields.io/packagist/php-v/bluzphp/composer-plugin.svg?style=flat)](https://php.net/)
 
 [![Latest Stable Version](https://img.shields.io/packagist/v/bluzphp/composer-plugin.svg?label=version&style=flat)](https://packagist.org/packages/bluzphp/composer-plugin)
 
@@ -19,7 +19,7 @@
 
 ## Requirements
 
-* PHP: 7.1 (or later)
+* PHP: 7.3 (or later)
 
 ## Available modules
 
@@ -59,7 +59,7 @@ php ./vendor/bin/bluzman module:remove options
 
 ## License
 
-The project is developed by [NIX Solutions][1] PHP team and distributed under [MIT LICENSE][2]
+The project is developed by [NIX][1] PHP team and distributed under [MIT LICENSE][2]
 
 [1]: http://nixsolutions.com
 [2]: https://raw.github.com/bluzphp/composer-plugin/master/LICENSE.md

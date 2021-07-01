@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Bluz PHP Team
  * @link https://github.com/bluzphp/framework
@@ -41,7 +42,7 @@ class TestCase extends \PHPUnit\Framework\TestCase
      */
     private $installer;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->io = $this->createMock('Composer\IO\NullIO');
         $this->config = new Config();
