@@ -1,8 +1,7 @@
 language: php
 php:
-  - 7.1
-  - 7.2
   - 7.3
+  - 7.4
   - master
 matrix:
   allow_failures:
@@ -13,7 +12,7 @@ install:
   - composer install
 script:
   # Code style
-  - php vendor/bin/phpcs ./src --standard=PSR1,PSR2 --encoding=utf-8
+  - php vendor/bin/phpcs ./src --standard=PSR12 --encoding=utf-8
   # PHPUnit tests
   - php vendor/bin/phpunit --configuration ./phpunit.xml.dist
 notifications:

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Bluz composer installer
  *
@@ -40,7 +41,7 @@ class Installer extends LibraryInstaller
      *
      * {@inheritDoc}
      */
-    public function supports($packageType)
+    public function supports($packageType): bool
     {
         return $packageType === 'bluz-module';
     }
