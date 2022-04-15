@@ -1,11 +1,12 @@
 language: php
 php:
-  - 7.3
   - 7.4
-  - master
+  - 8.0
+  - 8.1
 matrix:
   allow_failures:
-    - php: master
+    - php: 8.0
+    - php: 8.1
 install:
   # Composer
   - composer self-update
